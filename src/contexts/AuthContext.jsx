@@ -23,12 +23,18 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function fetchIsAdmin(userId) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('is_admin')
       .eq('id', userId)
       .single()
-    setIsAdmin(data?.is_admin ?? false)
+
+    if (error || !data) {
+      // Profile missing — user was deleted from Supabase, force sign out
+      await supabase.auth.signOut()
+      return
+    }
+    setIsAdmin(data.is_admin ?? false)
   }
 
   return (
