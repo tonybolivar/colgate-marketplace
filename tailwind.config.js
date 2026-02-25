@@ -4,12 +4,18 @@ export default {
     content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
   	extend: {
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		},
   		colors: {
+  			// Colgate University brand colors
+  			maroon: {
+  				DEFAULT: '#821019',
+  				light: '#9e1320',
+  				dark: '#5e0c12',
+  			},
+  			'maple-red': '#E10028',
+  			'shadow-gray': '#5A646E',
+  			'winter-gray': '#D2D4D6',
+  			'lake-blue': '#004682',
+  			// shadcn/ui tokens
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -50,9 +56,13 @@ export default {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			}
-  		}
+  		},
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
+  		},
   	}
   },
   plugins: [require("tailwindcss-animate")],
 }
-
