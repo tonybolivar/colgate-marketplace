@@ -19,16 +19,23 @@ export default function Navbar() {
 
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="#" className="hover:text-winter-gray transition-colors">Browse</a>
-          <a href="#" className="hover:text-winter-gray transition-colors">How It Works</a>
+          <Link to="/browse" className="hover:text-winter-gray transition-colors">Browse</Link>
+          {user && (
+            <Link to="/messages" className="hover:text-winter-gray transition-colors">Messages</Link>
+          )}
         </div>
 
         {/* Auth buttons */}
         <div className="flex items-center gap-2">
           {user ? (
-            <Button className="bg-white text-maroon hover:bg-winter-gray text-sm font-semibold" asChild>
-              <Link to="/account">Account</Link>
-            </Button>
+            <>
+              <Button variant="ghost" className="text-white hover:text-white hover:bg-maroon-light text-sm font-semibold" asChild>
+                <Link to="/listings/new">Post Listing</Link>
+              </Button>
+              <Button className="bg-white text-maroon hover:bg-winter-gray text-sm font-semibold" asChild>
+                <Link to="/account">Account</Link>
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" className="text-white hover:text-white hover:bg-maroon-light text-sm" asChild>
@@ -44,6 +51,7 @@ export default function Navbar() {
     </nav>
   )
 }
+
 
 function ColgateShield() {
   return (

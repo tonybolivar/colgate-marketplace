@@ -47,6 +47,14 @@ export default function AccountPage() {
     else data.class_year = null
 
     const { error } = await supabase.auth.updateUser({ data })
+    if (!error) {
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        full_name: data.full_name,
+        account_type: data.account_type,
+        class_year: data.class_year ? parseInt(data.class_year) : null,
+      })
+    }
     setProfileSaving(false)
     setProfileMsg(error
       ? { type: 'error', text: error.message }
