@@ -20,7 +20,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setServerError('')
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: form.email,
       password: form.password,
     })
@@ -28,6 +28,8 @@ export default function LoginPage() {
 
     if (error) {
       setServerError(error.message)
+    } else if (!data.session) {
+      setServerError('Please verify your email before logging in. Check your inbox for the confirmation link.')
     } else {
       navigate('/')
     }
