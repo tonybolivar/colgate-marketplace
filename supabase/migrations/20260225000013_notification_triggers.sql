@@ -13,20 +13,13 @@ RETURNS TABLE (email TEXT) AS $$
     AND u.email_confirmed_at IS NOT NULL
 $$ LANGUAGE sql SECURITY DEFINER;
 
--- Helper: fire the edge function (no-op if not configured)
+-- Helper: fire the edge function
 CREATE OR REPLACE FUNCTION _call_notification(payload jsonb)
 RETURNS void AS $$
-DECLARE
-  edge_url   text := current_setting('app.edge_url', true);
-  trig_secret text := current_setting('app.trigger_secret', true);
 BEGIN
-  IF edge_url IS NULL OR edge_url = '' THEN RETURN; END IF;
   PERFORM net.http_post(
-    url     := edge_url,
-    headers := json_build_object(
-                 'Content-Type',      'application/json',
-                 'x-trigger-secret',  trig_secret
-               )::jsonb,
+    url     := 'https://pxqurhzraduodjnnjrxt.supabase.co/functions/v1/send-notification',
+    headers := '{"Content-Type": "application/json", "x-trigger-secret": "colgate-mkt-2026-secret"}'::jsonb,
     body    := payload::text
   );
 END;
