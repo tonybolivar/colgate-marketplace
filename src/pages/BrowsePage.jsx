@@ -52,6 +52,7 @@ export default function BrowsePage() {
       .from('listings')
       .select('*')
       .eq('status', 'active')
+      .eq('approval_status', 'approved')
       .order('created_at', { ascending: false })
 
     if (activeCategory !== 'all') {

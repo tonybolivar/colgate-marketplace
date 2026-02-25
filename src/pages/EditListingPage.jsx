@@ -111,6 +111,7 @@ export default function EditListingPage() {
         course_dept: form.category === 'textbooks' ? (form.course_dept || null) : null,
         course_number: form.category === 'textbooks' ? (form.course_number.trim() || null) : null,
         images: [...existingImages, ...newUrls],
+        approval_status: 'pending',
       }
 
       const { error: updateError } = await supabase.from('listings').update(payload).eq('id', id)

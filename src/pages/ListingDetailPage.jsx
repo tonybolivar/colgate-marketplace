@@ -198,6 +198,12 @@ export default function ListingDetailPage() {
             {listing.status === 'sold' && (
               <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Sold</span>
             )}
+            {isSeller && listing.approval_status === 'pending' && (
+              <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">Pending Approval</span>
+            )}
+            {isSeller && listing.approval_status === 'rejected' && (
+              <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Rejected</span>
+            )}
             {listing.category === 'services' && listing.times_sold > 0 && (
               <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
                 {listing.times_sold} sold

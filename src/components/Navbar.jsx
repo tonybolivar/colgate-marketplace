@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function Navbar() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
 
   return (
     <nav className="bg-maroon text-white shadow-md">
@@ -22,6 +22,9 @@ export default function Navbar() {
           <Link to="/browse" className="hover:text-winter-gray transition-colors">Browse</Link>
           {user && (
             <Link to="/messages" className="hover:text-winter-gray transition-colors">Messages</Link>
+          )}
+          {isAdmin && (
+            <Link to="/admin" className="hover:text-winter-gray transition-colors">Admin</Link>
           )}
         </div>
 
