@@ -1,15 +1,22 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Redirect once the auth context confirms the user is logged in
+  useEffect(() => {
+    if (user) navigate('/', { replace: true })
+  }, [user, navigate])
 
   function handleChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -30,8 +37,6 @@ export default function LoginPage() {
       setServerError(error.message)
     } else if (!data.session) {
       setServerError('Please verify your email before logging in. Check your inbox for the confirmation link.')
-    } else {
-      navigate('/')
     }
   }
 
