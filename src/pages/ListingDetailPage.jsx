@@ -39,14 +39,19 @@ export default function ListingDetailPage() {
     setLoading(true)
     const { data, error } = await supabase
       .from('listings')
-      .select('*, profiles(full_name, account_type)')
+      .select('*')
       .eq('id', id)
       .single()
     if (error || !data) {
       setLoading(false)
       return
     }
-    setListing(data)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, account_type')
+      .eq('id', data.seller_id)
+      .single()
+    setListing({ ...data, profiles: profile || null })
     setLoading(false)
   }
 
