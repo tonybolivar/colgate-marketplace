@@ -9,17 +9,35 @@ export default function AuthCallbackPage() {
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
-    // Check for an error in the hash (e.g. otp_expired from implicit flow)
     const hash = window.location.hash
-    if (hash.includes('error')) {
-      const params = new URLSearchParams(hash.replace('#', ''))
-      const desc = params.get('error_description')
-      setErrorMsg(desc ? desc.replace(/\+/g, ' ') : 'Verification failed.')
+    const search = window.location.search
+    const hashParams = new URLSearchParams(hash.replace('#', ''))
+    const searchParams = new URLSearchParams(search)
+
+    // Check for errors in either hash or query string
+    const hasError = hashParams.has('error') || searchParams.has('error')
+    if (hasError) {
+      const desc = hashParams.get('error_description') || searchParams.get('error_description') || ''
+      setErrorMsg(desc.replace(/\+/g, ' ') || 'Verification failed.')
       setStatus('error')
       return
     }
 
-    // Give the Supabase client a moment to process the token from the hash
+    // PKCE flow: exchange the code for a session
+    const code = searchParams.get('code')
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setErrorMsg(error.message)
+          setStatus('error')
+        } else {
+          setStatus('success')
+        }
+      })
+      return
+    }
+
+    // Implicit flow: Supabase client auto-processes the hash token on init
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         setErrorMsg(error.message)
