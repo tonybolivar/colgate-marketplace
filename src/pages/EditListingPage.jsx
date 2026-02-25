@@ -11,7 +11,7 @@ const selectClass = 'flex h-9 w-full rounded-md border border-input bg-transpare
 const textareaClass = 'flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[100px] resize-y'
 
 export default function EditListingPage() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
   const { id } = useParams()
 
@@ -44,7 +44,7 @@ export default function EditListingPage() {
   async function fetchListing() {
     const { data, error } = await supabase.from('listings').select('*').eq('id', id).single()
     if (error || !data) { navigate('/browse', { replace: true }); return }
-    if (data.seller_id !== user.id) { navigate(`/listings/${id}`, { replace: true }); return }
+    if (data.seller_id !== user.id && !isAdmin) { navigate(`/listings/${id}`, { replace: true }); return }
 
     setForm({
       title: data.title,

@@ -350,7 +350,19 @@ export default function ListingDetailPage() {
                 )
               )}
               {listing.status === 'archived' && (
-                <p className="text-sm text-center text-shadow-gray">This listing has been closed.</p>
+                <Button
+                  onClick={async () => {
+                    setActionLoading(true)
+                    await supabase.from('listings').update({ status: 'active' }).eq('id', id)
+                    setListing(l => ({ ...l, status: 'active' }))
+                    setActionLoading(false)
+                  }}
+                  disabled={actionLoading}
+                  variant="outline"
+                  className="w-full text-green-700 border-green-300 hover:bg-green-50"
+                >
+                  Reopen Listing
+                </Button>
               )}
             </div>
           ) : (
