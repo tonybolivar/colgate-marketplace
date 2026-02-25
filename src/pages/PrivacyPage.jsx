@@ -19,8 +19,8 @@ export default function PrivacyPage() {
         </ul>
         <p>
           Questions? Reach us at{' '}
-          <a href="mailto:colgatemarketplace@google.com" className="text-maroon hover:underline">
-            colgatemarketplace@google.com
+          <a href="mailto:colgatemarketplace@gmail.com" className="text-maroon hover:underline">
+            colgatemarketplace@gmail.com
           </a>.
         </p>
       </div>
