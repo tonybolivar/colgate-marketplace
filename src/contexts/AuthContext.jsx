@@ -25,12 +25,16 @@ export function AuthProvider({ children }) {
   async function fetchIsAdmin(userId) {
     const { data, error } = await supabase
       .from('profiles')
-      .select('is_admin')
+      .select('is_admin, status')
       .eq('id', userId)
       .maybeSingle()
 
     if (error || !data) {
-      // Profile missing — user was deleted, force sign out
+      await supabase.auth.signOut()
+      return
+    }
+
+    if (data.status === 'suspended' || data.status === 'banned') {
       await supabase.auth.signOut()
       return
     }

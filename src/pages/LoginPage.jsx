@@ -38,6 +38,20 @@ export default function LoginPage() {
     } else if (!data.user?.email_confirmed_at) {
       await supabase.auth.signOut()
       setServerError('Please verify your email before logging in. Check your inbox for the confirmation link.')
+    } else {
+      // Check if account is suspended or banned
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('status')
+        .eq('id', data.user.id)
+        .maybeSingle()
+      if (profile?.status === 'banned') {
+        await supabase.auth.signOut()
+        setServerError('Your account has been permanently suspended for violations of our Terms of Service.')
+      } else if (profile?.status === 'suspended') {
+        await supabase.auth.signOut()
+        setServerError('Your account has been temporarily suspended. Please contact colgatemarketplace@gmail.com for more information.')
+      }
     }
   }
 

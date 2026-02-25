@@ -31,7 +31,7 @@ function timeAgo(dateStr) {
 }
 
 export default function ListingDetailPage() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
   const { id } = useParams()
 
@@ -149,6 +149,7 @@ export default function ListingDetailPage() {
   }
 
   const isSeller = user.id === listing.seller_id
+  const isAdminViewing = isAdmin && !isSeller
   const categoryLabel = CATEGORIES.find(c => c.value === listing.category)?.label || listing.category
   const conditionLabel = CONDITIONS.find(c => c.value === listing.condition)?.label
 
@@ -306,6 +307,50 @@ export default function ListingDetailPage() {
               )}
               {listing.status === 'archived' && (
                 <p className="text-sm text-center text-shadow-gray">This listing has been taken down.</p>
+              )}
+            </div>
+          ) : isAdminViewing ? (
+            <div className="space-y-2">
+              <p className="text-xs text-center text-amber-600 font-medium bg-amber-50 rounded-lg py-1">Admin controls</p>
+              <Button
+                onClick={() => navigate(`/listings/${id}/edit`)}
+                variant="outline"
+                className="w-full"
+              >
+                Edit Listing
+              </Button>
+              {listing.status === 'active' && (
+                confirmTakeDown ? (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleTakeDown}
+                      disabled={actionLoading}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      {actionLoading ? 'Closing…' : 'Yes, close listing'}
+                    </Button>
+                    <Button
+                      onClick={() => setConfirmTakeDown(false)}
+                      disabled={actionLoading}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => setConfirmTakeDown(true)}
+                    variant="outline"
+                    className="w-full text-gray-600"
+                  >
+                    Close Listing
+                  </Button>
+                )
+              )}
+              {listing.status === 'archived' && (
+                <p className="text-sm text-center text-shadow-gray">This listing has been closed.</p>
               )}
             </div>
           ) : (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -74,7 +74,7 @@ function Section({ title, children }) {
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
   const { userId } = useParams()
 
@@ -85,6 +85,9 @@ export default function ProfilePage() {
   const [rejectedListings, setRejectedListings] = useState([])
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [actionStatus, setActionStatus] = useState(null) // current profile status for admin display
+  const menuRef = useRef(null)
 
   // Review form state
   const [eligibleListings, setEligibleListings] = useState([])
@@ -108,12 +111,13 @@ export default function ProfilePage() {
     setLoading(true)
 
     const [profileRes, listingsRes, reviewsRes] = await Promise.all([
-      supabase.from('profiles').select('full_name, account_type, created_at').eq('id', userId).single(),
+      supabase.from('profiles').select('full_name, account_type, created_at, status').eq('id', userId).single(),
       supabase.from('listings').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
       supabase.from('reviews').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
     ])
 
     setProfile(profileRes.data || null)
+    setActionStatus(profileRes.data?.status || 'active')
 
     const allListings = listingsRes.data || []
     setActiveListings(allListings.filter(l => l.status === 'active' && l.approval_status === 'approved'))
@@ -177,6 +181,24 @@ export default function ProfilePage() {
     setLoading(false)
   }
 
+  async function handleAdminAction(newStatus) {
+    setMenuOpen(false)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ status: newStatus })
+      .eq('id', userId)
+    if (!error) setActionStatus(newStatus)
+  }
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
   async function handleSubmitReview(e) {
     e.preventDefault()
     if (!rating) { setReviewError('Please select a star rating.'); return }
@@ -235,8 +257,17 @@ export default function ProfilePage() {
         <div className="w-16 h-16 rounded-full bg-maroon text-white flex items-center justify-center text-2xl font-bold flex-shrink-0">
           {initial}
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{profile.full_name || 'Unknown'}</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900">{profile.full_name || 'Unknown'}</h1>
+            {isAdmin && actionStatus !== 'active' && (
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
+                actionStatus === 'banned' ? 'bg-red-100 text-red-700' :
+                actionStatus === 'suspended' ? 'bg-orange-100 text-orange-700' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>{actionStatus}</span>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-600">
             {profile.account_type && (
               <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize text-xs">
@@ -255,6 +286,50 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Admin three-dot menu */}
+        {isAdmin && user.id !== userId && (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+              title="Admin actions"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+              </svg>
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border z-10 py-1 overflow-hidden">
+                <p className="text-xs text-gray-400 px-3 py-1.5 font-medium uppercase tracking-wide">Admin actions</p>
+                {actionStatus !== 'warned' && (
+                  <button onClick={() => handleAdminAction('warned')}
+                    className="w-full text-left px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50 transition-colors">
+                    Warn User
+                  </button>
+                )}
+                {actionStatus !== 'suspended' && (
+                  <button onClick={() => handleAdminAction('suspended')}
+                    className="w-full text-left px-4 py-2 text-sm text-orange-700 hover:bg-orange-50 transition-colors">
+                    Suspend User
+                  </button>
+                )}
+                {actionStatus !== 'banned' && (
+                  <button onClick={() => handleAdminAction('banned')}
+                    className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors">
+                    Ban User
+                  </button>
+                )}
+                {actionStatus !== 'active' && (
+                  <button onClick={() => handleAdminAction('active')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t">
+                    Restore Account
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Pending listings — only shown to self */}
