@@ -34,7 +34,7 @@ export default function RegisterPage() {
     setLoading(true)
     setServerError('')
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
@@ -47,6 +47,9 @@ export default function RegisterPage() {
 
     if (error) {
       setServerError(error.message)
+    } else if (data?.user?.identities?.length === 0) {
+      // Supabase silently ignores duplicate emails — identities=[] reveals it
+      setServerError('An account with this email already exists. Please log in instead.')
     } else {
       navigate('/verify-email', { state: { email: form.email } })
     }
