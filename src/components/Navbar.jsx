@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 
 export default function Navbar() {
@@ -5,13 +6,13 @@ export default function Navbar() {
     <nav className="bg-maroon text-white shadow-md">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <ColgateShield />
           <div className="leading-tight">
             <div className="font-bold text-lg tracking-wide">Colgate</div>
             <div className="text-xs text-winter-gray tracking-widest uppercase">Marketplace</div>
           </div>
-        </a>
+        </Link>
 
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -21,11 +22,11 @@ export default function Navbar() {
 
         {/* Auth buttons */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" className="text-white hover:text-white hover:bg-maroon-light text-sm">
-            Log in
+          <Button variant="ghost" className="text-white hover:text-white hover:bg-maroon-light text-sm" asChild>
+            <Link to="/login">Log in</Link>
           </Button>
-          <Button className="bg-white text-maroon hover:bg-winter-gray text-sm font-semibold">
-            Sign up
+          <Button className="bg-white text-maroon hover:bg-winter-gray text-sm font-semibold" asChild>
+            <Link to="/register">Sign up</Link>
           </Button>
         </div>
       </div>
