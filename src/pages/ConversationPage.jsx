@@ -103,7 +103,7 @@ export default function ConversationPage() {
     setLoading(true)
     const { data: conv, error: convErr } = await supabase
       .from('conversations')
-      .select(`id, buyer_id, seller_id, listings(id, title, price, images, status, sold_to_buyer_id, seller_id)`)
+      .select(`id, buyer_id, seller_id, listings(id, title, price, images, status, category, times_sold, sold_to_buyer_id, seller_id)`)
       .eq('id', conversationId)
       .single()
 
