@@ -18,6 +18,7 @@ import ProfilePage from '@/pages/ProfilePage'
 import AdminPage from '@/pages/AdminPage'
 import ContactPage from '@/pages/ContactPage'
 import AboutPage from '@/pages/AboutPage'
+import PrivacyPage from '@/pages/PrivacyPage'
 
 function App() {
   const navigate = useNavigate()
@@ -66,6 +67,7 @@ function App() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Routes>
       </main>
       <Footer />
