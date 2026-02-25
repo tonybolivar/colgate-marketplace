@@ -33,7 +33,7 @@ export default function MessagesPage() {
     setLoading(true)
     const { data, error } = await supabase
       .from('conversations')
-      .select(`id, created_at, listing_id, buyer_id, seller_id, listings(title), messages(content, created_at)`)
+      .select(`id, created_at, listing_id, buyer_id, seller_id, listings(id, title, price, images, status), messages(content, created_at)`)
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
 
@@ -88,26 +88,45 @@ export default function MessagesPage() {
                 )
               : null
 
+            const listing = conv.listings
+
             return (
               <Link
                 key={conv.id}
                 to={`/messages/${conv.id}`}
                 className="block border border-winter-gray rounded-xl p-4 hover:border-maroon hover:shadow-sm transition-all"
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-sm text-gray-900 truncate">{otherName}</p>
-                    {conv.listings?.title && (
-                      <p className="text-xs text-shadow-gray truncate">Re: {conv.listings.title}</p>
-                    )}
                     {lastMsg && (
-                      <p className="text-sm text-gray-600 truncate mt-1">{lastMsg.content}</p>
+                      <p className="text-sm text-gray-600 truncate mt-0.5">{lastMsg.content}</p>
                     )}
                   </div>
                   {lastMsg && (
                     <span className="text-xs text-shadow-gray whitespace-nowrap">{timeAgo(lastMsg.created_at)}</span>
                   )}
                 </div>
+                {listing?.title && (
+                  <div className="flex items-center gap-3 border rounded-lg p-2 bg-gray-50">
+                    <div className="w-10 h-10 rounded-md bg-gray-200 overflow-hidden flex-shrink-0">
+                      {listing.images && listing.images.length > 0 ? (
+                        <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">—</div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-800 truncate">{listing.title}</p>
+                      <p className="text-xs text-maroon font-semibold">
+                        {listing.price != null ? `$${parseFloat(listing.price).toFixed(2)}` : 'Negotiable'}
+                      </p>
+                    </div>
+                    {listing.status === 'sold' && (
+                      <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Sold</span>
+                    )}
+                  </div>
+                )}
               </Link>
             )
           })}
