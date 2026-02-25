@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 export default function RegisterPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '' })
+  const [agreed, setAgreed] = useState(false)
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,6 +19,7 @@ export default function RegisterPage() {
     if (!form.email.endsWith('@colgate.edu')) e.email = 'Must be a @colgate.edu email address.'
     if (form.password.length < 8) e.password = 'Password must be at least 8 characters.'
     if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match.'
+    if (!agreed) e.agreed = 'You must agree to continue.'
     return e
   }
 
@@ -117,6 +119,23 @@ export default function RegisterPage() {
                 autoComplete="new-password"
               />
               {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={e => { setAgreed(e.target.checked); setErrors(prev => ({ ...prev, agreed: '' })) }}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-maroon flex-shrink-0"
+                />
+                <span className="text-sm text-gray-700">
+                  I agree to the{' '}
+                  <Link to="/privacy" className="text-maroon hover:underline font-medium">Privacy Policy</Link>
+                  {' '}and consent to receiving marketing emails from Colgate Marketplace.
+                </span>
+              </label>
+              {errors.agreed && <p className="text-xs text-destructive">{errors.agreed}</p>}
             </div>
 
             {serverError && <p className="text-sm text-destructive">{serverError}</p>}
