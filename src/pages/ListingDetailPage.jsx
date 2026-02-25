@@ -215,6 +215,11 @@ export default function ListingDetailPage() {
             {listing.status === 'sold' && (
               <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Sold</span>
             )}
+            {listing.category === 'services' && listing.times_sold > 0 && (
+              <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                {listing.times_sold} sold
+              </span>
+            )}
             <h1 className="text-2xl font-bold text-gray-900 mt-1">{listing.title}</h1>
             <p className="text-2xl font-bold text-maroon mt-1">
               {listing.price != null ? `$${parseFloat(listing.price).toFixed(2)}` : 'Price negotiable'}

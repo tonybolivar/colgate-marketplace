@@ -179,11 +179,27 @@ export default function ConversationPage() {
     setProcessingAction(true)
     const buyerId = conversation.buyer_id
     const listingId = conversation.listings?.id
+    const isService = conversation.listings?.category === 'services'
 
-    await supabase
-      .from('listings')
-      .update({ status: 'sold', sold_to_buyer_id: buyerId })
-      .eq('id', listingId)
+    if (isService) {
+      await supabase
+        .from('listings')
+        .update({ times_sold: (conversation.listings.times_sold ?? 0) + 1 })
+        .eq('id', listingId)
+      setConversation(prev => ({
+        ...prev,
+        listings: { ...prev.listings, times_sold: (prev.listings.times_sold ?? 0) + 1 },
+      }))
+    } else {
+      await supabase
+        .from('listings')
+        .update({ status: 'sold', sold_to_buyer_id: buyerId })
+        .eq('id', listingId)
+      setConversation(prev => ({
+        ...prev,
+        listings: { ...prev.listings, status: 'sold', sold_to_buyer_id: buyerId },
+      }))
+    }
 
     await supabase.from('messages').insert({
       conversation_id: conversationId,
@@ -192,10 +208,6 @@ export default function ConversationPage() {
       type: 'sale_confirmed',
     })
 
-    setConversation(prev => ({
-      ...prev,
-      listings: { ...prev.listings, status: 'sold', sold_to_buyer_id: buyerId },
-    }))
     setConfirmModalOpen(false)
     setProcessingAction(false)
   }
@@ -234,11 +246,13 @@ export default function ConversationPage() {
   const listing = conversation.listings
   const isBuyer = conversation.buyer_id === user.id
   const isSeller = conversation.seller_id === user.id
-  const saleOfferMsg = [...messages].reverse().find(m => m.type === 'sale_offer')
+  // Use most-recent special message to determine if an offer is pending (supports multi-round for services)
+  const lastSpecialMsg = [...messages].reverse().find(m => m.type === 'sale_offer' || m.type === 'sale_confirmed')
+  const hasPendingOffer = lastSpecialMsg?.type === 'sale_offer'
+  const pendingOfferMsg = hasPendingOffer ? lastSpecialMsg : null
   const saleConfirmedMsg = messages.find(m => m.type === 'sale_confirmed')
-  const hasPendingOffer = !!saleOfferMsg && !saleConfirmedMsg
   const saleComplete = !!saleConfirmedMsg || (listing?.status === 'sold' && listing?.sold_to_buyer_id === user.id)
-  const canOffer = isBuyer && listing?.status === 'active' && !saleOfferMsg
+  const canOffer = isBuyer && listing?.status === 'active' && !hasPendingOffer
   const showReviewPrompt = isBuyer && saleComplete && !hasReviewed && !reviewDone
 
   return (
@@ -296,7 +310,7 @@ export default function ConversationPage() {
                   <p className="text-sm text-blue-900 font-medium">
                     {senderName} offered to confirm this purchase
                   </p>
-                  {isSeller && hasPendingOffer && msg.id === saleOfferMsg?.id && (
+                  {isSeller && hasPendingOffer && msg.id === pendingOfferMsg?.id && (
                     <button
                       onClick={() => setConfirmModalOpen(true)}
                       className="mt-2 text-sm font-medium text-blue-700 hover:text-blue-900 underline"
