@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -196,6 +196,19 @@ export default function AccountPage() {
               {passwordSaving ? 'Updating…' : 'Update password'}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      {/* Seller profile */}
+      <Card>
+        <CardContent className="pt-6 flex items-center justify-between">
+          <div>
+            <p className="font-medium text-gray-900 text-sm">Your seller profile</p>
+            <p className="text-xs text-gray-500 mt-0.5">View your listings, reviews, and public profile</p>
+          </div>
+          <Button asChild variant="outline" className="ml-4 flex-shrink-0">
+            <Link to={`/profile/${user.id}`}>View profile</Link>
+          </Button>
         </CardContent>
       </Card>
 
