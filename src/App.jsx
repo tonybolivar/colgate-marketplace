@@ -8,6 +8,11 @@ import LoginPage from '@/pages/LoginPage'
 import VerifyEmailPage from '@/pages/VerifyEmailPage'
 import AuthCallbackPage from '@/pages/AuthCallbackPage'
 import AccountPage from '@/pages/AccountPage'
+import CreateListingPage from '@/pages/CreateListingPage'
+import BrowsePage from '@/pages/BrowsePage'
+import ListingDetailPage from '@/pages/ListingDetailPage'
+import MessagesPage from '@/pages/MessagesPage'
+import ConversationPage from '@/pages/ConversationPage'
 
 function App() {
   const navigate = useNavigate()
@@ -32,6 +37,11 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/listings/new" element={<CreateListingPage />} />
+          <Route path="/listings/:id" element={<ListingDetailPage />} />
+          <Route path="/browse" element={<BrowsePage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/messages/:conversationId" element={<ConversationPage />} />
         </Routes>
       </main>
       <Footer />
