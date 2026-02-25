@@ -34,18 +34,6 @@ export default function RegisterPage() {
     setLoading(true)
     setServerError('')
 
-    // Server-side domain validation
-    const check = await supabase.functions.invoke('register', {
-      body: { email: form.email },
-    })
-
-    if (check.error || check.data?.error) {
-      setServerError(check.data?.error ?? check.error.message)
-      setLoading(false)
-      return
-    }
-
-    // Browser-side signUp so Supabase uses PKCE and emailRedirectTo works
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
