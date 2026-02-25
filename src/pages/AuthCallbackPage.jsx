@@ -23,20 +23,6 @@ export default function AuthCallbackPage() {
       return
     }
 
-    // PKCE flow: exchange the code for a session
-    const code = searchParams.get('code')
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) {
-          setErrorMsg(error.message)
-          setStatus('error')
-        } else {
-          setStatus('success')
-        }
-      })
-      return
-    }
-
     // Implicit flow: Supabase client auto-processes the hash token on init
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
