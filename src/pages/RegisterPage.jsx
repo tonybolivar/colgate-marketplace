@@ -33,15 +33,15 @@ export default function RegisterPage() {
 
     setLoading(true)
     setServerError('')
-    const { error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { full_name: form.fullName.trim() } },
+
+    const res = await supabase.functions.invoke('register', {
+      body: { email: form.email, password: form.password, full_name: form.fullName.trim() },
     })
+
     setLoading(false)
 
-    if (error) {
-      setServerError(error.message)
+    if (res.error || res.data?.error) {
+      setServerError(res.data?.error ?? res.error.message)
     } else {
       navigate('/verify-email', { state: { email: form.email } })
     }
