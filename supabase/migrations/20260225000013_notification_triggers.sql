@@ -19,7 +19,7 @@ RETURNS void AS $$
 BEGIN
   PERFORM net.http_post(
     url     := 'https://pxqurhzraduodjnnjrxt.supabase.co/functions/v1/send-notification',
-    headers := '{"Content-Type": "application/json", "x-trigger-secret": "colgate-mkt-2026-secret"}'::jsonb,
+    headers := '{"Content-Type": "application/json"}'::jsonb,
     body    := payload::text
   );
 END;

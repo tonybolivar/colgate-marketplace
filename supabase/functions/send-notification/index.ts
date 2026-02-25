@@ -2,7 +2,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const RESEND_KEY = Deno.env.get("RESEND_API_KEY")!
-const TRIGGER_SECRET = Deno.env.get("TRIGGER_SECRET")!
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 
@@ -12,10 +11,6 @@ const FROM = "Colgate Marketplace <noreply@colgatemarket.com>"
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 serve(async (req) => {
-  if (req.headers.get("x-trigger-secret") !== TRIGGER_SECRET) {
-    return new Response("Unauthorized", { status: 401 })
-  }
-
   const { type, id } = await req.json()
 
   try {
