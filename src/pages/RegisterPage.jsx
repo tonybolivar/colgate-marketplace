@@ -34,14 +34,31 @@ export default function RegisterPage() {
     setLoading(true)
     setServerError('')
 
-    const res = await supabase.functions.invoke('register', {
-      body: { email: form.email, password: form.password, full_name: form.fullName.trim() },
+    // Server-side domain validation
+    const check = await supabase.functions.invoke('register', {
+      body: { email: form.email },
+    })
+
+    if (check.error || check.data?.error) {
+      setServerError(check.data?.error ?? check.error.message)
+      setLoading(false)
+      return
+    }
+
+    // Browser-side signUp so Supabase uses PKCE and emailRedirectTo works
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: { full_name: form.fullName.trim() },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     })
 
     setLoading(false)
 
-    if (res.error || res.data?.error) {
-      setServerError(res.data?.error ?? res.error.message)
+    if (error) {
+      setServerError(error.message)
     } else {
       navigate('/verify-email', { state: { email: form.email } })
     }
