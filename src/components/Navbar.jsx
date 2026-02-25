@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Navbar() {
+  const { user } = useAuth()
+
   return (
     <nav className="bg-maroon text-white shadow-md">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -22,12 +25,20 @@ export default function Navbar() {
 
         {/* Auth buttons */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" className="text-white hover:text-white hover:bg-maroon-light text-sm" asChild>
-            <Link to="/login">Log in</Link>
-          </Button>
-          <Button className="bg-white text-maroon hover:bg-winter-gray text-sm font-semibold" asChild>
-            <Link to="/register">Sign up</Link>
-          </Button>
+          {user ? (
+            <Button className="bg-white text-maroon hover:bg-winter-gray text-sm font-semibold" asChild>
+              <Link to="/account">Account</Link>
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" className="text-white hover:text-white hover:bg-maroon-light text-sm" asChild>
+                <Link to="/login">Log in</Link>
+              </Button>
+              <Button className="bg-white text-maroon hover:bg-winter-gray text-sm font-semibold" asChild>
+                <Link to="/register">Sign up</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </nav>
