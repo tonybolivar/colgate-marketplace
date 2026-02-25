@@ -67,6 +67,13 @@ export default function AdminPage() {
     setActionLoading(null)
   }
 
+  async function handleDelete(id) {
+    setActionLoading(id)
+    await supabase.from('listings').delete().eq('id', id)
+    setListings(prev => prev.filter(l => l.id !== id))
+    setActionLoading(null)
+  }
+
   if (!user || !isAdmin) return null
 
   const categoryLabel = (cat) => CATEGORIES.find(c => c.value === cat)?.label || cat
@@ -153,14 +160,24 @@ export default function AdminPage() {
                     </>
                   )}
                   {tab === 'rejected' && (
-                    <Button
-                      onClick={() => handleRestore(listing.id)}
-                      disabled={actionLoading === listing.id}
-                      variant="outline"
-                      className="text-sm h-8 px-4"
-                    >
-                      Move to Pending
-                    </Button>
+                    <>
+                      <Button
+                        onClick={() => handleRestore(listing.id)}
+                        disabled={actionLoading === listing.id}
+                        variant="outline"
+                        className="text-sm h-8 px-4"
+                      >
+                        Move to Pending
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(listing.id)}
+                        disabled={actionLoading === listing.id}
+                        variant="destructive"
+                        className="text-sm h-8 px-4"
+                      >
+                        Delete
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
