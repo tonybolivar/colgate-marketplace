@@ -14,6 +14,8 @@ export default function CreateListingPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
 
+  const [successId, setSuccessId] = useState(null)
+
   const [form, setForm] = useState({
     title: '',
     category: '',
@@ -90,7 +92,8 @@ export default function CreateListingPage() {
         .single()
       if (insertError) throw insertError
 
-      navigate(`/listings/${listing.id}`)
+      setSuccessId(listing.id)
+      setSubmitting(false)
     } catch (err) {
       setError(err.message || 'Something went wrong.')
       setSubmitting(false)
@@ -236,6 +239,33 @@ export default function CreateListingPage() {
           </form>
         </CardContent>
       </Card>
+
+      {successId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm text-center">
+            <div className="text-5xl mb-4">🎉</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Listing posted!</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Thank you for posting! Your listing will be reviewed by our moderation team and will be available on the marketplace shortly.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => navigate(`/listings/${successId}`)}
+                className="w-full bg-maroon hover:bg-maroon-light text-white"
+              >
+                View my listing
+              </Button>
+              <Button
+                onClick={() => navigate('/browse')}
+                variant="outline"
+                className="w-full"
+              >
+                Back to Browse
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
