@@ -30,12 +30,16 @@ export default function BrowsePage() {
 
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('search') || '')
   const activeCategory = searchParams.get('category') || 'all'
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
   }, [user, navigate])
+
+  useEffect(() => {
+    setSearch(searchParams.get('search') || '')
+  }, [searchParams.get('search')])
 
   useEffect(() => {
     if (!user) return
