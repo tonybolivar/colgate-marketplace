@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Footer() {
   return (
     <footer className="bg-maroon-dark text-winter-gray" style={{ backgroundColor: '#5e0c12' }}>
@@ -7,9 +9,7 @@ export default function Footer() {
           <span className="ml-2">— for the Colgate community</span>
         </div>
         <div className="flex gap-6 text-sm">
-          <a href="#" className="hover:text-white transition-colors">About</a>
-          <a href="#" className="hover:text-white transition-colors">Contact</a>
-          <a href="#" className="hover:text-white transition-colors">Privacy</a>
+          <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
         <div className="text-xs">
           © {new Date().getFullYear()} Colgate Marketplace. Not affiliated with Colgate University.
