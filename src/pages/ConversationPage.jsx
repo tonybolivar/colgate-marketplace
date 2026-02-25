@@ -51,14 +51,7 @@ export default function ConversationPage() {
     setLoading(true)
     const { data: conv, error: convErr } = await supabase
       .from('conversations')
-      .select(`
-        id,
-        buyer_id,
-        seller_id,
-        listings(id, title),
-        buyer:profiles!conversations_buyer_id_fkey(full_name),
-        seller:profiles!conversations_seller_id_fkey(full_name)
-      `)
+      .select(`id, buyer_id, seller_id, listings(id, title)`)
       .eq('id', conversationId)
       .single()
 
@@ -67,13 +60,19 @@ export default function ConversationPage() {
       return
     }
 
-    // Verify participant
     if (conv.buyer_id !== user.id && conv.seller_id !== user.id) {
       navigate('/messages', { replace: true })
       return
     }
 
-    setConversation(conv)
+    const otherId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id
+    const { data: otherProfile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', otherId)
+      .single()
+
+    setConversation({ ...conv, otherName: otherProfile?.full_name || 'Unknown' })
 
     const { data: msgs } = await supabase
       .from('messages')
@@ -104,17 +103,12 @@ export default function ConversationPage() {
     return <div className="max-w-2xl mx-auto px-4 py-12 text-shadow-gray">Loading…</div>
   }
 
-  const isBuyer = conversation.buyer_id === user.id
-  const otherName = isBuyer
-    ? conversation.seller?.full_name || 'Unknown'
-    : conversation.buyer?.full_name || 'Unknown'
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-120px)]">
       {/* Header */}
       <div className="mb-4">
         <Link to="/messages" className="text-sm text-shadow-gray hover:text-maroon">← Messages</Link>
-        <h1 className="text-lg font-bold text-gray-900 mt-1">{otherName}</h1>
+        <h1 className="text-lg font-bold text-gray-900 mt-1">{conversation.otherName}</h1>
         {conversation.listings?.title && (
           <Link
             to={`/listings/${conversation.listings.id}`}

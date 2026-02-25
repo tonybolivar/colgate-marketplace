@@ -46,7 +46,7 @@ export default function BrowsePage() {
     setLoading(true)
     let query = supabase
       .from('listings')
-      .select('*, profiles(full_name)')
+      .select('*')
       .eq('status', 'active')
       .order('created_at', { ascending: false })
 
@@ -58,7 +58,15 @@ export default function BrowsePage() {
     }
 
     const { data, error } = await query
-    if (!error) setListings(data || [])
+    if (!error && data) {
+      const sellerIds = [...new Set(data.map(l => l.seller_id))]
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', sellerIds)
+      const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
+      setListings(data.map(l => ({ ...l, profiles: profileMap[l.seller_id] || null })))
+    }
     setLoading(false)
   }
 

@@ -33,23 +33,25 @@ export default function MessagesPage() {
     setLoading(true)
     const { data, error } = await supabase
       .from('conversations')
-      .select(`
-        id,
-        created_at,
-        listing_id,
-        buyer_id,
-        seller_id,
-        listings(title),
-        buyer:profiles!conversations_buyer_id_fkey(full_name),
-        seller:profiles!conversations_seller_id_fkey(full_name),
-        messages(content, created_at)
-      `)
+      .select(`id, created_at, listing_id, buyer_id, seller_id, listings(title), messages(content, created_at)`)
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
 
-    if (!error) {
-      // Sort by most recent message
-      const sorted = (data || []).sort((a, b) => {
+    if (!error && data) {
+      const allIds = [...new Set(data.flatMap(c => [c.buyer_id, c.seller_id]))]
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', allIds)
+      const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
+
+      const enriched = data.map(c => ({
+        ...c,
+        buyer: profileMap[c.buyer_id] || null,
+        seller: profileMap[c.seller_id] || null,
+      }))
+
+      const sorted = enriched.sort((a, b) => {
         const aLast = a.messages?.length
           ? Math.max(...a.messages.map(m => new Date(m.created_at).getTime()))
           : new Date(a.created_at).getTime()
