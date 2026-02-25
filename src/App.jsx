@@ -9,6 +9,7 @@ import VerifyEmailPage from '@/pages/VerifyEmailPage'
 import AuthCallbackPage from '@/pages/AuthCallbackPage'
 import AccountPage from '@/pages/AccountPage'
 import CreateListingPage from '@/pages/CreateListingPage'
+import EditListingPage from '@/pages/EditListingPage'
 import BrowsePage from '@/pages/BrowsePage'
 import ListingDetailPage from '@/pages/ListingDetailPage'
 import MessagesPage from '@/pages/MessagesPage'
@@ -39,6 +40,7 @@ function App() {
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/listings/new" element={<CreateListingPage />} />
+          <Route path="/listings/:id/edit" element={<EditListingPage />} />
           <Route path="/listings/:id" element={<ListingDetailPage />} />
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/messages" element={<MessagesPage />} />

@@ -26,10 +26,7 @@ export default function ListingDetailPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Buyer picker state
-  const [showBuyerPicker, setShowBuyerPicker] = useState(false)
-  const [buyers, setBuyers] = useState([])
-  const [selectedBuyerId, setSelectedBuyerId] = useState('')
+  const [confirmTakeDown, setConfirmTakeDown] = useState(false)
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
@@ -60,63 +57,21 @@ export default function ListingDetailPage() {
     setLoading(false)
   }
 
-  async function handleMarkSoldClick() {
-    setActionLoading(true)
-    setError('')
-
-    // Fetch conversations for this listing to get buyer ids
-    const { data: convs } = await supabase
-      .from('conversations')
-      .select('buyer_id')
-      .eq('listing_id', id)
-
-    if (!convs || convs.length === 0) {
-      // No buyers — mark sold immediately with no sold_to_buyer_id
-      const { error } = await supabase
-        .from('listings')
-        .update({ status: 'sold', sold_to_buyer_id: null })
-        .eq('id', id)
-      if (error) {
-        setError(error.message)
-      } else {
-        setListing(l => ({ ...l, status: 'sold', sold_to_buyer_id: null }))
-      }
-      setActionLoading(false)
-      return
-    }
-
-    // Fetch profiles for buyers
-    const buyerIds = convs.map(c => c.buyer_id)
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .in('id', buyerIds)
-
-    const buyerList = buyerIds.map(bid => ({
-      id: bid,
-      name: profiles?.find(p => p.id === bid)?.full_name || 'Unknown',
-    }))
-
-    setBuyers(buyerList)
-    setSelectedBuyerId(buyerList[0].id)
-    setShowBuyerPicker(true)
-    setActionLoading(false)
-  }
-
-  async function handleConfirmSold() {
+  async function handleTakeDown() {
     setActionLoading(true)
     setError('')
     const { error } = await supabase
       .from('listings')
-      .update({ status: 'sold', sold_to_buyer_id: selectedBuyerId || null })
+      .update({ status: 'archived' })
       .eq('id', id)
     if (error) {
       setError(error.message)
+      setActionLoading(false)
     } else {
-      setListing(l => ({ ...l, status: 'sold', sold_to_buyer_id: selectedBuyerId || null }))
-      setShowBuyerPicker(false)
+      setListing(l => ({ ...l, status: 'archived' }))
+      setConfirmTakeDown(false)
+      setActionLoading(false)
     }
-    setActionLoading(false)
   }
 
   async function handleMessage() {
@@ -272,29 +227,27 @@ export default function ListingDetailPage() {
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           {isSeller ? (
-            listing.status === 'active' && (
-              showBuyerPicker ? (
-                <div className="border rounded-xl p-4 bg-gray-50 space-y-3">
-                  <p className="text-sm font-medium text-gray-700">Who bought this item?</p>
-                  <select
-                    value={selectedBuyerId}
-                    onChange={e => setSelectedBuyerId(e.target.value)}
-                    className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon"
-                  >
-                    {buyers.map(b => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
-                  </select>
+            <div className="space-y-2">
+              <Button
+                onClick={() => navigate(`/listings/${id}/edit`)}
+                variant="outline"
+                className="w-full"
+              >
+                Edit Listing
+              </Button>
+              {listing.status === 'active' && (
+                confirmTakeDown ? (
                   <div className="flex gap-2">
                     <Button
-                      onClick={handleConfirmSold}
+                      onClick={handleTakeDown}
                       disabled={actionLoading}
-                      className="flex-1 bg-maroon hover:bg-maroon-light text-white"
+                      variant="destructive"
+                      className="flex-1"
                     >
-                      {actionLoading ? 'Updating…' : 'Confirm Sale'}
+                      {actionLoading ? 'Removing…' : 'Yes, take down'}
                     </Button>
                     <Button
-                      onClick={() => setShowBuyerPicker(false)}
+                      onClick={() => setConfirmTakeDown(false)}
                       disabled={actionLoading}
                       variant="outline"
                       className="flex-1"
@@ -302,18 +255,20 @@ export default function ListingDetailPage() {
                       Cancel
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <Button
-                  onClick={handleMarkSoldClick}
-                  disabled={actionLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {actionLoading ? 'Loading…' : 'Mark as Sold'}
-                </Button>
-              )
-            )
+                ) : (
+                  <Button
+                    onClick={() => setConfirmTakeDown(true)}
+                    variant="outline"
+                    className="w-full text-gray-600"
+                  >
+                    Take Down Listing
+                  </Button>
+                )
+              )}
+              {listing.status === 'archived' && (
+                <p className="text-sm text-center text-shadow-gray">This listing has been taken down.</p>
+              )}
+            </div>
           ) : (
             listing.status === 'active' && (
               <Button
