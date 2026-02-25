@@ -14,13 +14,8 @@ export default function AuthCallbackPage() {
     const hashParams = new URLSearchParams(hash.replace('#', ''))
     const searchParams = new URLSearchParams(search)
 
-    // Check for errors in either hash or query string
-    if (hashParams.has('error') || searchParams.has('error')) {
-      const desc = hashParams.get('error_description') || searchParams.get('error_description') || ''
-      setErrorMsg(desc.replace(/\+/g, ' ') || 'Verification failed.')
-      setStatus('error')
-      return
-    }
+    const hasError = hashParams.has('error') || searchParams.has('error')
+    const errorDesc = hashParams.get('error_description') || searchParams.get('error_description') || ''
 
     // Listen for the SIGNED_IN event — implicit flow processes the hash async
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -29,14 +24,20 @@ export default function AuthCallbackPage() {
       }
     })
 
-    // Also check if session is already set (e.g. hash was processed before this ran)
+    // Check for existing session first. Email scanners can pre-fetch the verification
+    // link (verifying the account) so the token appears "expired" when the user clicks.
+    // If a session exists, verification already succeeded — show success regardless of the hash error.
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
+      if (session) {
+        setStatus('success')
+      } else if (hasError) {
+        setErrorMsg(errorDesc.replace(/\+/g, ' ') || 'Verification failed.')
+        setStatus('error')
+      } else if (error) {
         setErrorMsg(error.message)
         setStatus('error')
-      } else if (session) {
-        setStatus('success')
       }
+      // else: no session yet, no error — wait for onAuthStateChange or timeout
     })
 
     // Fallback timeout — if nothing resolves in 8s, show error
