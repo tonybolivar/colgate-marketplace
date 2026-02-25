@@ -9,6 +9,7 @@ export default function Footer() {
           <span className="ml-2">— for the Colgate community</span>
         </div>
         <div className="flex gap-6 text-sm">
+          <Link to="/about" className="hover:text-white transition-colors">About</Link>
           <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
         <div className="text-xs">
