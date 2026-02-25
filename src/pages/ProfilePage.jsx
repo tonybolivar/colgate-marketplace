@@ -81,6 +81,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null)
   const [activeListings, setActiveListings] = useState([])
   const [soldListings, setSoldListings] = useState([])
+  const [pendingListings, setPendingListings] = useState([])
+  const [rejectedListings, setRejectedListings] = useState([])
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -105,16 +107,22 @@ export default function ProfilePage() {
   async function fetchAll() {
     setLoading(true)
 
-    const [profileRes, activeRes, soldRes, reviewsRes] = await Promise.all([
+    const [profileRes, listingsRes, reviewsRes] = await Promise.all([
       supabase.from('profiles').select('full_name, account_type, created_at').eq('id', userId).single(),
-      supabase.from('listings').select('*').eq('seller_id', userId).eq('status', 'active').order('created_at', { ascending: false }),
-      supabase.from('listings').select('*').eq('seller_id', userId).eq('status', 'sold').order('created_at', { ascending: false }),
+      supabase.from('listings').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
       supabase.from('reviews').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
     ])
 
     setProfile(profileRes.data || null)
-    setActiveListings(activeRes.data || [])
-    setSoldListings(soldRes.data || [])
+
+    const allListings = listingsRes.data || []
+    setActiveListings(allListings.filter(l => l.status === 'active' && l.approval_status === 'approved'))
+    setSoldListings(allListings.filter(l => l.status === 'sold'))
+    // Only show pending/rejected to the seller themselves
+    if (user.id === userId) {
+      setPendingListings(allListings.filter(l => l.approval_status === 'pending'))
+      setRejectedListings(allListings.filter(l => l.approval_status === 'rejected'))
+    }
 
     // Fetch reviewer names for reviews
     const rawReviews = reviewsRes.data || []
@@ -248,6 +256,35 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Pending listings — only shown to self */}
+      {pendingListings.length > 0 && (
+        <Section title={`Pending Approval (${pendingListings.length})`}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {pendingListings.map(l => (
+              <div key={l.id} className="relative">
+                <ListingCard listing={l} />
+                <span className="absolute top-2 left-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">Pending</span>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Rejected listings — only shown to self */}
+      {rejectedListings.length > 0 && (
+        <Section title={`Rejected (${rejectedListings.length})`}>
+          <p className="text-xs text-gray-500 mb-3">Edit the listing to resubmit for approval.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {rejectedListings.map(l => (
+              <div key={l.id} className="relative">
+                <ListingCard listing={l} />
+                <span className="absolute top-2 left-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Rejected</span>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Active listings */}
       <Section title={`Active Listings (${activeListings.length})`}>
