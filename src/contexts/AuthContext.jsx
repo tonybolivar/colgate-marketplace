@@ -29,22 +29,9 @@ export function AuthProvider({ children }) {
       .eq('id', userId)
       .maybeSingle()
 
-    if (error) {
-      // Real database error — sign out
+    if (error || !data) {
+      // Profile missing — user was deleted, force sign out
       await supabase.auth.signOut()
-      return
-    }
-
-    if (!data) {
-      // Profile missing — trigger may have failed silently, create it now
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await supabase.from('profiles').upsert({
-          id: userId,
-          full_name: user.user_metadata?.full_name ?? '',
-        })
-      }
-      setIsAdmin(false)
       return
     }
 
