@@ -191,7 +191,9 @@ export default function ListingDetailPage() {
           <div className="border-t pt-4">
             <p className="text-sm font-medium text-gray-700 mb-1">Seller</p>
             <p className="text-sm text-gray-600">
-              {listing.profiles?.full_name || 'Unknown'}
+              <Link to={`/profile/${listing.seller_id}`} className="underline hover:text-maroon">
+                {listing.profiles?.full_name || 'Unknown'}
+              </Link>
               {listing.profiles?.account_type && (
                 <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full capitalize">
                   {listing.profiles.account_type}

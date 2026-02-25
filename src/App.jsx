@@ -13,6 +13,7 @@ import BrowsePage from '@/pages/BrowsePage'
 import ListingDetailPage from '@/pages/ListingDetailPage'
 import MessagesPage from '@/pages/MessagesPage'
 import ConversationPage from '@/pages/ConversationPage'
+import ProfilePage from '@/pages/ProfilePage'
 
 function App() {
   const navigate = useNavigate()
@@ -42,6 +43,7 @@ function App() {
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/messages/:conversationId" element={<ConversationPage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
         </Routes>
       </main>
       <Footer />
