@@ -10,10 +10,10 @@ export default function ContactPage() {
         <div>
           <p className="text-sm font-medium text-gray-700 mb-1">Email</p>
           <a
-            href="mailto:colgatemarketplace@google.com"
+            href="mailto:colgatemarketplace@gmail.com"
             className="text-maroon hover:underline font-medium"
           >
-            colgatemarketplace@google.com
+            colgatemarketplace@gmail.com
           </a>
         </div>
 
@@ -24,7 +24,7 @@ export default function ContactPage() {
 
         <div className="pt-2 border-t">
           <a
-            href="mailto:colgatemarketplace@google.com"
+            href="mailto:colgatemarketplace@gmail.com"
             className="inline-block bg-maroon hover:bg-maroon-light text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
           >
             Send us an email
