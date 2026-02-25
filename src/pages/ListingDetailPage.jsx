@@ -5,6 +5,21 @@ import { useAuth } from '@/contexts/AuthContext'
 import { CATEGORIES, CONDITIONS } from '@/lib/categories'
 import { Button } from '@/components/ui/button'
 
+function StarDisplay({ rating, count }) {
+  return (
+    <span className="flex items-center gap-1">
+      {Array.from({ length: 5 }, (_, i) => (
+        <svg key={i} viewBox="0 0 20 20" fill="currentColor"
+          className={`w-4 h-4 ${i < Math.round(rating) ? 'text-yellow-400' : 'text-gray-300'}`}>
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+      <span className="text-sm font-medium text-gray-700">{rating}</span>
+      <span className="text-sm text-gray-400">({count})</span>
+    </span>
+  )
+}
+
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
@@ -27,6 +42,7 @@ export default function ListingDetailPage() {
   const [error, setError] = useState('')
 
   const [confirmTakeDown, setConfirmTakeDown] = useState(false)
+  const [listingRating, setListingRating] = useState(null) // { avg, count } for services
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
@@ -54,6 +70,18 @@ export default function ListingDetailPage() {
       .eq('id', data.seller_id)
       .single()
     setListing({ ...data, profiles: profile || null })
+
+    if (data.category === 'services') {
+      const { data: revs } = await supabase
+        .from('reviews')
+        .select('rating')
+        .eq('listing_id', data.id)
+      if (revs && revs.length > 0) {
+        const avg = (revs.reduce((s, r) => s + r.rating, 0) / revs.length).toFixed(1)
+        setListingRating({ avg, count: revs.length })
+      }
+    }
+
     setLoading(false)
   }
 
@@ -179,6 +207,11 @@ export default function ListingDetailPage() {
             <p className="text-2xl font-bold text-maroon mt-1">
               {listing.price != null ? `$${parseFloat(listing.price).toFixed(2)}` : 'Price negotiable'}
             </p>
+            {listingRating && (
+              <div className="mt-1">
+                <StarDisplay rating={listingRating.avg} count={listingRating.count} />
+              </div>
+            )}
           </div>
 
           {/* Badges row */}
