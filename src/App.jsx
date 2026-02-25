@@ -7,6 +7,7 @@ import RegisterPage from '@/pages/RegisterPage'
 import LoginPage from '@/pages/LoginPage'
 import VerifyEmailPage from '@/pages/VerifyEmailPage'
 import AuthCallbackPage from '@/pages/AuthCallbackPage'
+import AccountPage from '@/pages/AccountPage'
 
 function App() {
   const navigate = useNavigate()
@@ -30,6 +31,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/account" element={<AccountPage />} />
         </Routes>
       </main>
       <Footer />
