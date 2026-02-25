@@ -11,12 +11,13 @@ export default function LoginPage() {
   const { user } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
   const [serverError, setServerError] = useState('')
+  const [warning, setWarning] = useState(null) // { reason } — shown after login for warned users
   const [loading, setLoading] = useState(false)
 
-  // Redirect once the auth context confirms the user is logged in
+  // Redirect once the auth context confirms the user is logged in (skip if showing warning)
   useEffect(() => {
-    if (user) navigate('/', { replace: true })
-  }, [user, navigate])
+    if (user && !warning) navigate('/', { replace: true })
+  }, [user, warning, navigate])
 
   function handleChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -39,10 +40,10 @@ export default function LoginPage() {
       await supabase.auth.signOut()
       setServerError('Please verify your email before logging in. Check your inbox for the confirmation link.')
     } else {
-      // Check if account is suspended or banned
+      // Check account status
       const { data: profile } = await supabase
         .from('profiles')
-        .select('status')
+        .select('status, warn_reason')
         .eq('id', data.user.id)
         .maybeSingle()
       if (profile?.status === 'banned') {
@@ -50,9 +51,42 @@ export default function LoginPage() {
         setServerError('Your account has been permanently suspended for violations of our Terms of Service.')
       } else if (profile?.status === 'suspended') {
         await supabase.auth.signOut()
-        setServerError('Your account has been temporarily suspended. Please contact colgatemarketplace@gmail.com for more information.')
+        setServerError('Your account has been temporarily suspended. Please contact colgatemarketplace13@gmail.com for more information.')
+      } else if (profile?.status === 'warned') {
+        setWarning({ reason: profile.warn_reason })
       }
     }
+  }
+
+  if (warning) {
+    return (
+      <div className="min-h-[calc(100vh-120px)] flex items-center justify-center px-4 py-12">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="mx-auto mb-3 text-4xl">⚠️</div>
+            <CardTitle className="text-xl text-center">Your account has a warning</CardTitle>
+            <CardDescription className="text-center">
+              An admin has issued a warning on your account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-800">
+              <p className="font-medium mb-1">Reason:</p>
+              <p>{warning.reason || 'No reason provided.'}</p>
+            </div>
+            <p className="text-xs text-gray-500 text-center">
+              Further violations may result in suspension or a permanent ban.
+            </p>
+            <Button
+              onClick={() => { setWarning(null); navigate('/') }}
+              className="w-full bg-maroon hover:bg-maroon-light text-white"
+            >
+              I understand, continue
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

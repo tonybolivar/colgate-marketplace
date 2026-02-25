@@ -86,7 +86,9 @@ export default function ProfilePage() {
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [actionStatus, setActionStatus] = useState(null) // current profile status for admin display
+  const [actionStatus, setActionStatus] = useState(null)
+  const [warnModalOpen, setWarnModalOpen] = useState(false)
+  const [warnReason, setWarnReason] = useState('')
   const menuRef = useRef(null)
 
   // Review form state
@@ -183,11 +185,25 @@ export default function ProfilePage() {
 
   async function handleAdminAction(newStatus) {
     setMenuOpen(false)
+    if (newStatus === 'warned') { setWarnModalOpen(true); return }
     const { error } = await supabase
       .from('profiles')
-      .update({ status: newStatus })
+      .update({ status: newStatus, ...(newStatus === 'active' ? { warn_reason: null } : {}) })
       .eq('id', userId)
     if (!error) setActionStatus(newStatus)
+  }
+
+  async function handleSubmitWarn() {
+    if (!warnReason.trim()) return
+    const { error } = await supabase
+      .from('profiles')
+      .update({ status: 'warned', warn_reason: warnReason.trim() })
+      .eq('id', userId)
+    if (!error) {
+      setActionStatus('warned')
+      setWarnModalOpen(false)
+      setWarnReason('')
+    }
   }
 
   // Close menu when clicking outside
@@ -462,6 +478,37 @@ export default function ProfilePage() {
             </Button>
           </form>
         </Section>
+      )}
+
+      {/* Warn reason modal */}
+      {warnModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+          onClick={() => { setWarnModalOpen(false); setWarnReason('') }}>
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Warn {profile.full_name}</h2>
+            <p className="text-sm text-gray-500 mb-4">This reason will be shown to the user when they log in.</p>
+            <textarea
+              value={warnReason}
+              onChange={e => setWarnReason(e.target.value)}
+              rows={3}
+              placeholder="Enter reason for warning…"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none mb-4"
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => { setWarnModalOpen(false); setWarnReason('') }}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitWarn}
+                disabled={!warnReason.trim()}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white"
+              >
+                Send Warning
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
