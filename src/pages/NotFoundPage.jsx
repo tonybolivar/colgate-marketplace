@@ -6,8 +6,8 @@ export default function NotFoundPage() {
     <div className="min-h-[calc(100vh-120px)] flex items-center justify-center px-4">
       <div className="text-center">
         <p className="text-8xl font-bold text-maroon mb-4">404</p>
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Page not found</h1>
-        <p className="text-gray-500 mb-8">The page you're looking for doesn't exist.</p>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Page not found</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-8">The page you're looking for doesn't exist.</p>
         <Button asChild className="bg-maroon hover:bg-maroon-light text-white">
           <Link to="/">Go home</Link>
         </Button>

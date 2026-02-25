@@ -16,7 +16,7 @@ function StarRating({ rating, max = 5, size = 'md', interactive = false, onChang
             key={i}
             type="button"
             onClick={() => onChange && onChange(i + 1)}
-            className={`${sizeCls} transition-colors ${filled ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400`}
+            className={`${sizeCls} transition-colors ${filled ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'} hover:text-yellow-400`}
             aria-label={`Rate ${i + 1} star${i !== 0 ? 's' : ''}`}
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-full h-full">
@@ -24,7 +24,7 @@ function StarRating({ rating, max = 5, size = 'md', interactive = false, onChang
             </svg>
           </button>
         ) : (
-          <span key={i} className={`${sizeCls} ${filled ? 'text-yellow-400' : 'text-gray-300'}`}>
+          <span key={i} className={`${sizeCls} ${filled ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}>
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-full h-full">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
@@ -41,21 +41,21 @@ function ListingCard({ listing }) {
   return (
     <Link
       to={`/listings/${listing.id}`}
-      className={`block rounded-xl border bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow ${sold ? 'opacity-60' : ''}`}
+      className={`block rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-md transition-shadow ${sold ? 'opacity-60' : ''}`}
     >
-      <div className="aspect-square bg-gray-100 relative">
+      <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative">
         {listing.images && listing.images.length > 0 ? (
           <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No photo</div>
+          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">No photo</div>
         )}
         {sold && (
           <span className="absolute top-2 left-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Sold</span>
         )}
       </div>
       <div className="p-3">
-        <p className="text-xs text-shadow-gray capitalize mb-0.5">{categoryLabel}</p>
-        <p className="font-medium text-gray-900 text-sm line-clamp-2">{listing.title}</p>
+        <p className="text-xs text-shadow-gray dark:text-gray-400 capitalize mb-0.5">{categoryLabel}</p>
+        <p className="font-medium text-gray-900 dark:text-gray-100 text-sm line-clamp-2">{listing.title}</p>
         <p className="text-maroon font-bold text-sm mt-1">
           {listing.price != null ? `$${parseFloat(listing.price).toFixed(2)}` : 'Negotiable'}
         </p>
@@ -67,7 +67,7 @@ function ListingCard({ listing }) {
 function Section({ title, children }) {
   return (
     <section className="mb-10">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">{title}</h2>
+      <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">{title}</h2>
       {children}
     </section>
   )
@@ -250,7 +250,7 @@ export default function ProfilePage() {
   if (loading) return <div className="max-w-4xl mx-auto px-4 py-12 text-shadow-gray">Loading…</div>
   if (!profile) return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      <p className="text-gray-600">Profile not found.</p>
+      <p className="text-gray-600 dark:text-gray-400">Profile not found.</p>
       <Link to="/browse" className="text-maroon text-sm underline mt-2 inline-block">Back to Browse</Link>
     </div>
   )
@@ -266,7 +266,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <Link to="/browse" className="text-sm text-shadow-gray hover:text-maroon mb-6 inline-block">← Back to Browse</Link>
+      <Link to="/browse" className="text-sm text-shadow-gray dark:text-gray-400 hover:text-maroon mb-6 inline-block">← Back to Browse</Link>
 
       {/* Profile header */}
       <div className="flex items-center gap-5 mb-10">
@@ -275,7 +275,7 @@ export default function ProfilePage() {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">{profile.full_name || 'Unknown'}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{profile.full_name || 'Unknown'}</h1>
             {isAdmin && actionStatus !== 'active' && (
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
                 actionStatus === 'banned' ? 'bg-red-100 text-red-700' :
@@ -284,9 +284,9 @@ export default function ProfilePage() {
               }`}>{actionStatus}</span>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-600">
+          <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-600 dark:text-gray-400">
             {profile.account_type && (
-              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize text-xs">
+              <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full capitalize text-xs">
                 {profile.account_type}
               </span>
             )}
@@ -295,10 +295,10 @@ export default function ProfilePage() {
               <span className="flex items-center gap-1">
                 <StarRating rating={Math.round(parseFloat(avgRating))} size="sm" />
                 <span className="font-medium">{avgRating}</span>
-                <span className="text-gray-400">({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span>
+                <span className="text-gray-400 dark:text-gray-500">({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span>
               </span>
             ) : (
-              <span className="text-gray-400 text-xs">No reviews yet</span>
+              <span className="text-gray-400 dark:text-gray-500 text-xs">No reviews yet</span>
             )}
           </div>
         </div>
@@ -308,7 +308,7 @@ export default function ProfilePage() {
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(o => !o)}
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
               title="Admin actions"
             >
               <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
@@ -316,8 +316,8 @@ export default function ProfilePage() {
               </svg>
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border z-10 py-1 overflow-hidden">
-                <p className="text-xs text-gray-400 px-3 py-1.5 font-medium uppercase tracking-wide">Admin actions</p>
+              <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-10 py-1 overflow-hidden">
+                <p className="text-xs text-gray-400 dark:text-gray-500 px-3 py-1.5 font-medium uppercase tracking-wide">Admin actions</p>
                 {actionStatus !== 'warned' && (
                   <button onClick={() => handleAdminAction('warned')}
                     className="w-full text-left px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50 transition-colors">
@@ -338,7 +338,7 @@ export default function ProfilePage() {
                 )}
                 {actionStatus !== 'active' && (
                   <button onClick={() => handleAdminAction('active')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t">
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-t border-gray-200 dark:border-gray-700">
                     Restore Account
                   </button>
                 )}
@@ -365,7 +365,7 @@ export default function ProfilePage() {
       {/* Rejected listings — only shown to self */}
       {rejectedListings.length > 0 && (
         <Section title={`Rejected (${rejectedListings.length})`}>
-          <p className="text-xs text-gray-500 mb-3">Edit the listing to resubmit for approval.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Edit the listing to resubmit for approval.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {rejectedListings.map(l => (
               <div key={l.id} className="relative">
@@ -380,7 +380,7 @@ export default function ProfilePage() {
       {/* Active listings */}
       <Section title={`Active Listings (${activeListings.length})`}>
         {activeListings.length === 0 ? (
-          <p className="text-sm text-gray-500">No active listings.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No active listings.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {activeListings.map(l => <ListingCard key={l.id} listing={l} />)}
@@ -391,7 +391,7 @@ export default function ProfilePage() {
       {/* Sold listings */}
       <Section title={`Sold Listings (${soldListings.length})`}>
         {soldListings.length === 0 ? (
-          <p className="text-sm text-gray-500">No sold listings.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No sold listings.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {soldListings.map(l => <ListingCard key={l.id} listing={l} />)}
@@ -402,21 +402,21 @@ export default function ProfilePage() {
       {/* Reviews */}
       <Section title={`Reviews (${reviews.length})`}>
         {reviews.length === 0 ? (
-          <p className="text-sm text-gray-500">No reviews yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No reviews yet.</p>
         ) : (
           <div className="space-y-4">
             {reviews.map(r => (
-              <div key={r.id} className="border rounded-xl p-4 bg-white shadow-sm">
+              <div key={r.id} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-900 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <StarRating rating={r.rating} size="sm" />
-                    {r.comment && <p className="text-sm text-gray-700 mt-2">{r.comment}</p>}
+                    {r.comment && <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">{r.comment}</p>}
                   </div>
-                  <span className="text-xs text-gray-400 whitespace-nowrap">
+                  <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
                     {new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
-                <div className="mt-2 text-xs text-gray-500">
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   <span className="font-medium">{r.reviewer_name}</span>
                   {' · '}
                   <Link to={`/listings/${r.listing_id}`} className="underline hover:text-maroon">
@@ -432,14 +432,14 @@ export default function ProfilePage() {
       {/* Leave a review */}
       {user.id !== userId && eligibleListings.length > 0 && (
         <Section title="Leave a Review">
-          <form onSubmit={handleSubmitReview} className="border rounded-xl p-5 bg-white shadow-sm space-y-4 max-w-lg">
+          <form onSubmit={handleSubmitReview} className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-white dark:bg-gray-900 shadow-sm space-y-4 max-w-lg">
             {/* Listing selector */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Listing</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Listing</label>
               <select
                 value={selectedListing}
                 onChange={e => setSelectedListing(e.target.value)}
-                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon bg-white dark:bg-gray-900 dark:text-gray-100"
               >
                 {eligibleListings.map(l => (
                   <option key={l.id} value={l.id}>{l.title}</option>
@@ -449,20 +449,20 @@ export default function ProfilePage() {
 
             {/* Star picker */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Rating</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Rating</label>
               <StarRating rating={rating} interactive onChange={setRating} />
             </div>
 
             {/* Comment */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Comment <span className="font-normal text-gray-400">(optional)</span></label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1">Comment <span className="font-normal text-gray-400 dark:text-gray-500">(optional)</span></label>
               <textarea
                 value={comment}
                 onChange={e => setComment(e.target.value)}
                 rows={3}
                 maxLength={500}
                 placeholder="Share your experience…"
-                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon resize-none"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon resize-none bg-white dark:bg-gray-900 dark:text-gray-100"
               />
             </div>
 
@@ -484,15 +484,15 @@ export default function ProfilePage() {
       {warnModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
           onClick={() => { setWarnModalOpen(false); setWarnReason('') }}>
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Warn {profile.full_name}</h2>
-            <p className="text-sm text-gray-500 mb-4">This reason will be shown to the user when they log in.</p>
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Warn {profile.full_name}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">This reason will be shown to the user when they log in.</p>
             <textarea
               value={warnReason}
               onChange={e => setWarnReason(e.target.value)}
               rows={3}
               placeholder="Enter reason for warning…"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none mb-4"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none mb-4 bg-white dark:bg-gray-900 dark:text-gray-100"
               autoFocus
             />
             <div className="flex gap-2 justify-end">

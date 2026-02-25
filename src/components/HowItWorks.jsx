@@ -18,10 +18,10 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="bg-gray-50 py-16">
+    <section className="bg-gray-50 dark:bg-gray-800 py-16">
       <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-2xl font-bold text-maroon mb-2 text-center">How It Works</h2>
-        <p className="text-center text-shadow-gray mb-12">Simple, safe, and built for Colgate</p>
+        <p className="text-center text-shadow-gray dark:text-gray-400 mb-12">Simple, safe, and built for Colgate</p>
 
         <div className="grid md:grid-cols-3 gap-8">
           {steps.map((step) => (
@@ -29,8 +29,8 @@ export default function HowItWorks() {
               <div className="w-14 h-14 rounded-full bg-maroon text-white flex items-center justify-center text-lg font-bold mb-4">
                 {step.number}
               </div>
-              <h3 className="font-semibold text-gray-900 text-lg mb-2">{step.title}</h3>
-              <p className="text-shadow-gray text-sm leading-relaxed">{step.desc}</p>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg mb-2">{step.title}</h3>
+              <p className="text-shadow-gray dark:text-gray-400 text-sm leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>

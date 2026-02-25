@@ -13,7 +13,7 @@ function StarPicker({ rating, onChange }) {
           key={i}
           type="button"
           onClick={() => onChange(i + 1)}
-          className={`w-6 h-6 transition-colors ${i < rating ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400`}
+          className={`w-6 h-6 transition-colors ${i < rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'} hover:text-yellow-400`}
           aria-label={`Rate ${i + 1} star${i !== 0 ? 's' : ''}`}
         >
           <svg viewBox="0 0 20 20" fill="currentColor" className="w-full h-full">
@@ -33,7 +33,7 @@ function Modal({ open, onClose, children }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl"
+        className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl"
         onClick={e => e.stopPropagation()}
       >
         {children}
@@ -240,7 +240,7 @@ export default function ConversationPage() {
   if (!user) return null
 
   if (loading) {
-    return <div className="max-w-2xl mx-auto px-4 py-12 text-shadow-gray">Loading…</div>
+    return <div className="max-w-2xl mx-auto px-4 py-12 text-shadow-gray dark:text-gray-400">Loading…</div>
   }
 
   const listing = conversation.listings
@@ -259,8 +259,8 @@ export default function ConversationPage() {
     <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-120px)]">
       {/* Header */}
       <div className="mb-4">
-        <Link to="/messages" className="text-sm text-shadow-gray hover:text-maroon">← Messages</Link>
-        <h1 className="text-lg font-bold text-gray-900 mt-1">{conversation.otherName}</h1>
+        <Link to="/messages" className="text-sm text-shadow-gray dark:text-gray-400 hover:text-maroon">← Messages</Link>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">{conversation.otherName}</h1>
         {listing?.title && (
           <Link
             to={`/listings/${listing.id}`}
@@ -275,17 +275,17 @@ export default function ConversationPage() {
       {listing?.title && (
         <Link
           to={`/listings/${listing.id}`}
-          className="flex items-center gap-3 border rounded-xl p-3 mb-4 bg-white hover:shadow-md transition-shadow"
+          className="flex items-center gap-3 border border-gray-200 dark:border-gray-700 rounded-xl p-3 mb-4 bg-white dark:bg-gray-900 hover:shadow-md transition-shadow"
         >
-          <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+          <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
             {listing.images && listing.images.length > 0 ? (
               <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No photo</div>
+              <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">No photo</div>
             )}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{listing.title}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{listing.title}</p>
             <p className="text-sm text-maroon font-bold">
               {listing.price != null ? `$${parseFloat(listing.price).toFixed(2)}` : 'Negotiable'}
             </p>
@@ -299,7 +299,7 @@ export default function ConversationPage() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-3 pr-1 mb-4">
         {messages.length === 0 && (
-          <p className="text-sm text-shadow-gray text-center mt-8">No messages yet. Say hello!</p>
+          <p className="text-sm text-shadow-gray dark:text-gray-400 text-center mt-8">No messages yet. Say hello!</p>
         )}
         {messages.map(msg => {
           if (msg.type === 'sale_offer') {
@@ -344,7 +344,7 @@ export default function ConversationPage() {
                 className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
                   isMe
                     ? 'bg-maroon text-white rounded-br-sm'
-                    : 'bg-gray-100 text-gray-900 rounded-bl-sm'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm'
                 }`}
               >
                 {msg.content}
@@ -357,7 +357,7 @@ export default function ConversationPage() {
         {showReviewPrompt && (
           <div className="flex justify-center">
             <div className="border border-yellow-200 bg-yellow-50 rounded-xl p-4 max-w-sm w-full">
-              <p className="text-sm font-medium text-gray-800 mb-3">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">
                 Leave <span className="font-semibold">{conversation.otherName}</span> a review!
               </p>
               <form onSubmit={handleSubmitReview} className="space-y-2">
@@ -368,7 +368,7 @@ export default function ConversationPage() {
                   rows={2}
                   maxLength={500}
                   placeholder="Share your experience… (optional)"
-                  className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon resize-none bg-white"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon resize-none bg-white dark:bg-gray-900 dark:text-gray-100"
                 />
                 {reviewError && <p className="text-xs text-destructive">{reviewError}</p>}
                 <Button
@@ -424,8 +424,8 @@ export default function ConversationPage() {
 
       {/* Offer Sale modal (buyer) */}
       <Modal open={offerModalOpen} onClose={() => setOfferModalOpen(false)}>
-        <h2 className="text-base font-semibold text-gray-900 mb-3">Before you confirm</h2>
-        <ul className="text-sm text-gray-700 space-y-2 mb-5 list-disc list-inside">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">Before you confirm</h2>
+        <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2 mb-5 list-disc list-inside">
           <li>Take a photo of the item as proof of the transaction.</li>
           <li>Only confirm once you've physically received the item.</li>
           <li>Only confirm once you've paid the seller.</li>
@@ -441,7 +441,7 @@ export default function ConversationPage() {
           <Button
             variant="ghost"
             onClick={() => setOfferModalOpen(false)}
-            className="w-full text-gray-500"
+            className="w-full text-gray-500 dark:text-gray-400"
           >
             Cancel
           </Button>
@@ -450,8 +450,8 @@ export default function ConversationPage() {
 
       {/* Confirm Sale modal (seller) */}
       <Modal open={confirmModalOpen} onClose={() => setConfirmModalOpen(false)}>
-        <h2 className="text-base font-semibold text-gray-900 mb-2">Confirm sale</h2>
-        <p className="text-sm text-gray-600 mb-5">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Confirm sale</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-5">
           Have you received payment from{' '}
           <span className="font-semibold">{conversation.otherName}</span>?
           This will mark the listing as sold.
@@ -467,7 +467,7 @@ export default function ConversationPage() {
           <Button
             variant="ghost"
             onClick={() => setConfirmModalOpen(false)}
-            className="w-full text-gray-500"
+            className="w-full text-gray-500 dark:text-gray-400"
           >
             Cancel
           </Button>

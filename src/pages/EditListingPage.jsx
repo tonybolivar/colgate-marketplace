@@ -127,7 +127,7 @@ export default function EditListingPage() {
   if (!user) return null
 
   if (loading) {
-    return <div className="max-w-xl mx-auto px-4 py-12 text-shadow-gray">Loading…</div>
+    return <div className="max-w-xl mx-auto px-4 py-12 text-shadow-gray dark:text-gray-400">Loading…</div>
   }
 
   const totalImages = existingImages.length + newImageFiles.length
@@ -248,7 +248,7 @@ export default function EditListingPage() {
                   ))}
                   {newImagePreviews.map((src, i) => (
                     <div key={i} className="relative">
-                      <img src={src} alt="" className="w-20 h-20 object-cover rounded-md border border-dashed border-gray-400" />
+                      <img src={src} alt="" className="w-20 h-20 object-cover rounded-md border border-dashed border-gray-400 dark:border-gray-600" />
                       <button
                         type="button"
                         onClick={() => removeNew(i)}
@@ -264,7 +264,7 @@ export default function EditListingPage() {
                 <div className="flex gap-2 flex-wrap">
                   {newImagePreviews.map((src, i) => (
                     <div key={i} className="relative">
-                      <img src={src} alt="" className="w-20 h-20 object-cover rounded-md border border-dashed border-gray-400" />
+                      <img src={src} alt="" className="w-20 h-20 object-cover rounded-md border border-dashed border-gray-400 dark:border-gray-600" />
                       <button
                         type="button"
                         onClick={() => removeNew(i)}

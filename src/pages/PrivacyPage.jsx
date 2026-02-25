@@ -1,17 +1,17 @@
 export default function PrivacyPage() {
   return (
     <div className="max-w-xl mx-auto px-4 py-16">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
-      <p className="text-gray-500 mb-8">Last updated: February 2026</p>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Privacy Policy</h1>
+      <p className="text-gray-500 dark:text-gray-400 mb-8">Last updated: February 2026</p>
 
-      <div className="border rounded-xl p-6 bg-white shadow-sm space-y-5 text-sm text-gray-700 leading-relaxed">
+      <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-900 shadow-sm space-y-5 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
         <p>
           This privacy policy is a placeholder. A full policy will be published before the public launch of Colgate Marketplace.
         </p>
         <p>
           In the meantime, here is what you should know:
         </p>
-        <ul className="list-disc list-inside space-y-2 text-gray-600">
+        <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-400">
           <li>We collect your name and @colgate.edu email address when you register.</li>
           <li>Your information is only accessible to other verified Colgate community members.</li>
           <li>We do not sell your data to third parties.</li>

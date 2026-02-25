@@ -72,9 +72,9 @@ export default function MessagesPage() {
       <h1 className="text-2xl font-bold text-maroon mb-6">Messages</h1>
 
       {loading ? (
-        <p className="text-shadow-gray">Loading…</p>
+        <p className="text-shadow-gray dark:text-gray-400">Loading…</p>
       ) : conversations.length === 0 ? (
-        <p className="text-shadow-gray">No conversations yet. Browse listings and message a seller to get started.</p>
+        <p className="text-shadow-gray dark:text-gray-400">No conversations yet. Browse listings and message a seller to get started.</p>
       ) : (
         <div className="space-y-2">
           {conversations.map(conv => {
@@ -94,30 +94,30 @@ export default function MessagesPage() {
               <Link
                 key={conv.id}
                 to={`/messages/${conv.id}`}
-                className="block border border-winter-gray rounded-xl p-4 hover:border-maroon hover:shadow-sm transition-all"
+                className="block border border-winter-gray dark:border-gray-700 rounded-xl p-4 hover:border-maroon hover:shadow-sm transition-all"
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-sm text-gray-900 truncate">{otherName}</p>
+                    <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{otherName}</p>
                     {lastMsg && (
-                      <p className="text-sm text-gray-600 truncate mt-0.5">{lastMsg.content}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-0.5">{lastMsg.content}</p>
                     )}
                   </div>
                   {lastMsg && (
-                    <span className="text-xs text-shadow-gray whitespace-nowrap">{timeAgo(lastMsg.created_at)}</span>
+                    <span className="text-xs text-shadow-gray dark:text-gray-400 whitespace-nowrap">{timeAgo(lastMsg.created_at)}</span>
                   )}
                 </div>
                 {listing?.title && (
-                  <div className="flex items-center gap-3 border rounded-lg p-2 bg-gray-50">
-                    <div className="w-10 h-10 rounded-md bg-gray-200 overflow-hidden flex-shrink-0">
+                  <div className="flex items-center gap-3 border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-800">
+                    <div className="w-10 h-10 rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                       {listing.images && listing.images.length > 0 ? (
                         <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">—</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">—</div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-gray-800 truncate">{listing.title}</p>
+                      <p className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">{listing.title}</p>
                       <p className="text-xs text-maroon font-semibold">
                         {listing.price != null ? `$${parseFloat(listing.price).toFixed(2)}` : 'Negotiable'}
                       </p>

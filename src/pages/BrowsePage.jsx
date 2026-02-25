@@ -129,7 +129,7 @@ export default function BrowsePage() {
           className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
             activeCategory === 'all'
               ? 'bg-maroon text-white'
-              : 'bg-winter-gray text-gray-700 hover:bg-gray-200'
+              : 'bg-winter-gray text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
         >
           All
@@ -141,7 +141,7 @@ export default function BrowsePage() {
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeCategory === cat.value
                 ? 'bg-maroon text-white'
-                : 'bg-winter-gray text-gray-700 hover:bg-gray-200'
+                : 'bg-winter-gray text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
             {cat.label}
@@ -151,19 +151,19 @@ export default function BrowsePage() {
 
       {/* Listings grid */}
       {loading ? (
-        <p className="text-shadow-gray">Loading…</p>
+        <p className="text-shadow-gray dark:text-gray-400">Loading…</p>
       ) : listings.length === 0 ? (
-        <p className="text-shadow-gray">No listings found.</p>
+        <p className="text-shadow-gray dark:text-gray-400">No listings found.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {listings.map(listing => (
             <Link
               key={listing.id}
               to={`/listings/${listing.id}`}
-              className="group border border-winter-gray rounded-xl overflow-hidden hover:border-maroon hover:shadow-md transition-all"
+              className="group border border-winter-gray dark:border-gray-700 rounded-xl overflow-hidden hover:border-maroon hover:shadow-md transition-all"
             >
               {/* Thumbnail */}
-              <div className="aspect-square bg-gray-100 overflow-hidden">
+              <div className="aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
                 {listing.images && listing.images.length > 0 ? (
                   <img
                     src={listing.images[0]}
@@ -171,7 +171,7 @@ export default function BrowsePage() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
                     No photo
                   </div>
                 )}
@@ -179,7 +179,7 @@ export default function BrowsePage() {
 
               {/* Info */}
               <div className="p-3 space-y-1">
-                <p className="font-semibold text-sm text-gray-900 truncate group-hover:text-maroon transition-colors">
+                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate group-hover:text-maroon transition-colors">
                   {listing.title}
                 </p>
                 <p className="text-maroon font-bold text-sm">
@@ -189,25 +189,25 @@ export default function BrowsePage() {
                   <div className="flex items-center gap-1">
                     {Array.from({ length: 5 }, (_, i) => (
                       <svg key={i} viewBox="0 0 20 20" fill="currentColor"
-                        className={`w-3 h-3 ${i < Math.round(parseFloat(listing.avgRating)) ? 'text-yellow-400' : 'text-gray-300'}`}>
+                        className={`w-3 h-3 ${i < Math.round(parseFloat(listing.avgRating)) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}>
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     ))}
-                    <span className="text-xs text-gray-600 font-medium">{listing.avgRating}</span>
-                    <span className="text-xs text-gray-400">({listing.reviewCount})</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">{listing.avgRating}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">({listing.reviewCount})</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
                   {listing.condition && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${conditionColors[listing.condition] || 'bg-gray-100 text-gray-700'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${conditionColors[listing.condition] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
                       {listing.condition.replace('_', ' ')}
                     </span>
                   )}
-                  <span className="text-xs text-shadow-gray capitalize">
+                  <span className="text-xs text-shadow-gray dark:text-gray-400 capitalize">
                     {CATEGORIES.find(c => c.value === listing.category)?.label || listing.category}
                   </span>
                 </div>
-                <p className="text-xs text-shadow-gray">
+                <p className="text-xs text-shadow-gray dark:text-gray-400">
                   {listing.profiles?.full_name || 'Unknown'} · {timeAgo(listing.created_at)}
                 </p>
               </div>

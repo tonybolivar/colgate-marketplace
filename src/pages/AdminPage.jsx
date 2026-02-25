@@ -80,8 +80,8 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin — Listing Approvals</h1>
-      <p className="text-sm text-gray-500 mb-6">Review and approve or reject submitted listings.</p>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Admin — Listing Approvals</h1>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Review and approve or reject submitted listings.</p>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
@@ -90,7 +90,7 @@ export default function AdminPage() {
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors capitalize ${
-              tab === t ? 'bg-maroon text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              tab === t ? 'bg-maroon text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
             {t}
@@ -99,19 +99,19 @@ export default function AdminPage() {
       </div>
 
       {loading ? (
-        <p className="text-shadow-gray">Loading…</p>
+        <p className="text-shadow-gray dark:text-gray-400">Loading…</p>
       ) : listings.length === 0 ? (
-        <p className="text-gray-500 text-sm">No {tab} listings.</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">No {tab} listings.</p>
       ) : (
         <div className="space-y-4">
           {listings.map(listing => (
-            <div key={listing.id} className="border rounded-xl bg-white shadow-sm p-4 flex gap-4">
+            <div key={listing.id} className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 shadow-sm p-4 flex gap-4">
               {/* Thumbnail */}
-              <div className="w-20 h-20 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+              <div className="w-20 h-20 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
                 {listing.images && listing.images.length > 0 ? (
                   <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No photo</div>
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">No photo</div>
                 )}
               </div>
 
@@ -121,20 +121,20 @@ export default function AdminPage() {
                   <div>
                     <Link
                       to={`/listings/${listing.id}`}
-                      className="font-semibold text-gray-900 hover:text-maroon hover:underline"
+                      className="font-semibold text-gray-900 dark:text-gray-100 hover:text-maroon hover:underline"
                     >
                       {listing.title}
                     </Link>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       {categoryLabel(listing.category)}
                       {listing.price != null ? ` · $${parseFloat(listing.price).toFixed(2)}` : ' · Negotiable'}
                       {' · '}by {listing.sellerName}
                     </p>
                     {listing.description && (
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{listing.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{listing.description}</p>
                     )}
                   </div>
-                  <p className="text-xs text-gray-400 whitespace-nowrap">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
                     {new Date(listing.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </p>
                 </div>

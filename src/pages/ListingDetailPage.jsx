@@ -10,12 +10,12 @@ function StarDisplay({ rating, count }) {
     <span className="flex items-center gap-1">
       {Array.from({ length: 5 }, (_, i) => (
         <svg key={i} viewBox="0 0 20 20" fill="currentColor"
-          className={`w-4 h-4 ${i < Math.round(rating) ? 'text-yellow-400' : 'text-gray-300'}`}>
+          className={`w-4 h-4 ${i < Math.round(rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}>
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
       ))}
-      <span className="text-sm font-medium text-gray-700">{rating}</span>
-      <span className="text-sm text-gray-400">({count})</span>
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{rating}</span>
+      <span className="text-sm text-gray-400 dark:text-gray-500">({count})</span>
     </span>
   )
 }
@@ -136,13 +136,13 @@ export default function ListingDetailPage() {
   if (!user) return null
 
   if (loading) {
-    return <div className="max-w-4xl mx-auto px-4 py-12 text-shadow-gray">Loading…</div>
+    return <div className="max-w-4xl mx-auto px-4 py-12 text-shadow-gray dark:text-gray-400">Loading…</div>
   }
 
   if (!listing) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <p className="text-shadow-gray">Listing not found.</p>
+        <p className="text-shadow-gray dark:text-gray-400">Listing not found.</p>
         <Link to="/browse" className="text-maroon text-sm underline mt-2 inline-block">Back to Browse</Link>
       </div>
     )
@@ -155,14 +155,14 @@ export default function ListingDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <Link to="/browse" className="text-sm text-shadow-gray hover:text-maroon mb-6 inline-block">
+      <Link to="/browse" className="text-sm text-shadow-gray dark:text-gray-400 hover:text-maroon mb-6 inline-block">
         ← Back to Browse
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Image gallery */}
         <div className="space-y-3">
-          <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+          <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
             {listing.images && listing.images.length > 0 ? (
               <img
                 src={listing.images[activeImg]}
@@ -170,7 +170,7 @@ export default function ListingDetailPage() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                 No photos
               </div>
             )}
@@ -195,7 +195,7 @@ export default function ListingDetailPage() {
         {/* Details */}
         <div className="space-y-4">
           <div>
-            <span className="text-sm text-shadow-gray capitalize">{categoryLabel}</span>
+            <span className="text-sm text-shadow-gray dark:text-gray-400 capitalize">{categoryLabel}</span>
             {listing.status === 'sold' && (
               <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Sold</span>
             )}
@@ -206,11 +206,11 @@ export default function ListingDetailPage() {
               <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Rejected</span>
             )}
             {listing.category === 'services' && listing.times_sold > 0 && (
-              <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+              <span className="ml-2 text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full font-medium">
                 {listing.times_sold} sold
               </span>
             )}
-            <h1 className="text-2xl font-bold text-gray-900 mt-1">{listing.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{listing.title}</h1>
             <p className="text-2xl font-bold text-maroon mt-1">
               {listing.price != null ? `$${parseFloat(listing.price).toFixed(2)}` : 'Price negotiable'}
             </p>
@@ -224,12 +224,12 @@ export default function ListingDetailPage() {
           {/* Badges row */}
           <div className="flex flex-wrap gap-2 text-sm">
             {conditionLabel && (
-              <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+              <span className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full">
                 Condition: {conditionLabel}
               </span>
             )}
             {listing.category === 'textbooks' && listing.course_dept && (
-              <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+              <span className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full">
                 {listing.course_dept}{listing.course_number ? ` ${listing.course_number}` : ''}
               </span>
             )}
@@ -237,31 +237,31 @@ export default function ListingDetailPage() {
 
           {listing.description && (
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap">{listing.description}</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{listing.description}</p>
             </div>
           )}
 
           {listing.pickup_location && (
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Pickup location</p>
-              <p className="text-sm text-gray-600">{listing.pickup_location}</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pickup location</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{listing.pickup_location}</p>
             </div>
           )}
 
-          <div className="border-t pt-4">
-            <p className="text-sm font-medium text-gray-700 mb-1">Seller</p>
-            <p className="text-sm text-gray-600">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Seller</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               <Link to={`/profile/${listing.seller_id}`} className="underline hover:text-maroon">
                 {listing.profiles?.full_name || 'Unknown'}
               </Link>
               {listing.profiles?.account_type && (
-                <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full capitalize">
+                <span className="ml-2 text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full capitalize">
                   {listing.profiles.account_type}
                 </span>
               )}
             </p>
-            <p className="text-xs text-shadow-gray mt-1">Posted {timeAgo(listing.created_at)}</p>
+            <p className="text-xs text-shadow-gray dark:text-gray-400 mt-1">Posted {timeAgo(listing.created_at)}</p>
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -299,14 +299,14 @@ export default function ListingDetailPage() {
                   <Button
                     onClick={() => setConfirmTakeDown(true)}
                     variant="outline"
-                    className="w-full text-gray-600"
+                    className="w-full text-gray-600 dark:text-gray-400"
                   >
                     Take Down Listing
                   </Button>
                 )
               )}
               {listing.status === 'archived' && (
-                <p className="text-sm text-center text-shadow-gray">This listing has been taken down.</p>
+                <p className="text-sm text-center text-shadow-gray dark:text-gray-400">This listing has been taken down.</p>
               )}
             </div>
           ) : isAdminViewing ? (
@@ -343,7 +343,7 @@ export default function ListingDetailPage() {
                   <Button
                     onClick={() => setConfirmTakeDown(true)}
                     variant="outline"
-                    className="w-full text-gray-600"
+                    className="w-full text-gray-600 dark:text-gray-400"
                   >
                     Close Listing
                   </Button>
