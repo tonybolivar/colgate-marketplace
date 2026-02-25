@@ -25,10 +25,14 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_ANON_KEY')!
     )
 
+    const origin = req.headers.get('origin') ?? Deno.env.get('SUPABASE_URL')!
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name } },
+      options: {
+        data: { full_name },
+        emailRedirectTo: `${origin}/auth/callback`,
+      },
     })
 
     if (error) {

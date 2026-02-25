@@ -5,6 +5,7 @@ import HomePage from '@/pages/HomePage'
 import RegisterPage from '@/pages/RegisterPage'
 import LoginPage from '@/pages/LoginPage'
 import VerifyEmailPage from '@/pages/VerifyEmailPage'
+import AuthCallbackPage from '@/pages/AuthCallbackPage'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Routes>
       </main>
       <Footer />
