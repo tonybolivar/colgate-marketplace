@@ -145,32 +145,24 @@ export default function ProfilePage() {
 
     // Find eligible listings to review (only when viewing someone else's profile)
     if (user.id !== userId) {
-      const { data: convs } = await supabase
-        .from('conversations')
-        .select('listing_id')
-        .eq('buyer_id', user.id)
+      const { data: soldToMe } = await supabase
+        .from('listings')
+        .select('id, title')
         .eq('seller_id', userId)
+        .eq('sold_to_buyer_id', user.id)
+        .eq('status', 'sold')
 
-      if (convs && convs.length > 0) {
-        const convListingIds = convs.map(c => c.listing_id).filter(Boolean)
-        if (convListingIds.length > 0) {
-          const { data: soldConvListings } = await supabase
-            .from('listings')
-            .select('id, title')
-            .in('id', convListingIds)
-            .eq('status', 'sold')
+      if (soldToMe && soldToMe.length > 0) {
+        const { data: alreadyReviewed } = await supabase
+          .from('reviews')
+          .select('listing_id')
+          .eq('reviewer_id', user.id)
+          .eq('seller_id', userId)
 
-          const { data: alreadyReviewed } = await supabase
-            .from('reviews')
-            .select('listing_id')
-            .eq('reviewer_id', user.id)
-            .eq('seller_id', userId)
-
-          const reviewedIds = new Set((alreadyReviewed || []).map(r => r.listing_id))
-          const eligible = (soldConvListings || []).filter(l => !reviewedIds.has(l.id))
-          setEligibleListings(eligible)
-          if (eligible.length > 0) setSelectedListing(eligible[0].id)
-        }
+        const reviewedIds = new Set((alreadyReviewed || []).map(r => r.listing_id))
+        const eligible = soldToMe.filter(l => !reviewedIds.has(l.id))
+        setEligibleListings(eligible)
+        if (eligible.length > 0) setSelectedListing(eligible[0].id)
       }
     }
 
