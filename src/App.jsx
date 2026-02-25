@@ -21,11 +21,25 @@ function App() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Supabase implicit flow puts auth results in the hash fragment.
-    // Intercept them here and send to /auth/callback for proper handling.
+    // Supabase redirects auth results to the site root when /auth/callback
+    // isn't in the Redirect URLs allowlist. Forward everything to /auth/callback.
     const hash = window.location.hash
-    if (hash && (hash.includes('type=signup') || hash.includes('error_code=otp'))) {
-      navigate('/auth/callback', { replace: true })
+    const search = window.location.search
+
+    const hashIsAuth = hash && (
+      hash.includes('access_token') ||
+      hash.includes('type=signup') ||
+      hash.includes('error=')
+    )
+    const searchIsAuth = search && (
+      search.includes('code=') ||
+      search.includes('error=')
+    )
+
+    if (hashIsAuth) {
+      navigate(`/auth/callback${hash}`, { replace: true })
+    } else if (searchIsAuth) {
+      navigate(`/auth/callback${search}`, { replace: true })
     }
   }, [navigate])
 
