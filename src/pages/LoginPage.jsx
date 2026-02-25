@@ -35,7 +35,8 @@ export default function LoginPage() {
 
     if (error) {
       setServerError(error.message)
-    } else if (!data.session) {
+    } else if (!data.user?.email_confirmed_at) {
+      await supabase.auth.signOut()
       setServerError('Please verify your email before logging in. Check your inbox for the confirmation link.')
     }
   }
