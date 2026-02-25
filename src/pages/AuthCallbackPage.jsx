@@ -15,26 +15,45 @@ export default function AuthCallbackPage() {
     const searchParams = new URLSearchParams(search)
 
     // Check for errors in either hash or query string
-    const hasError = hashParams.has('error') || searchParams.has('error')
-    if (hasError) {
+    if (hashParams.has('error') || searchParams.has('error')) {
       const desc = hashParams.get('error_description') || searchParams.get('error_description') || ''
       setErrorMsg(desc.replace(/\+/g, ' ') || 'Verification failed.')
       setStatus('error')
       return
     }
 
-    // Implicit flow: Supabase client auto-processes the hash token on init
+    // Listen for the SIGNED_IN event — implicit flow processes the hash async
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setStatus('success')
+      }
+    })
+
+    // Also check if session is already set (e.g. hash was processed before this ran)
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         setErrorMsg(error.message)
         setStatus('error')
       } else if (session) {
         setStatus('success')
-      } else {
-        setErrorMsg('Verification link is invalid or has expired.')
-        setStatus('error')
       }
     })
+
+    // Fallback timeout — if nothing resolves in 8s, show error
+    const timer = setTimeout(() => {
+      setStatus(s => {
+        if (s === 'loading') {
+          setErrorMsg('Verification link is invalid or has expired.')
+          return 'error'
+        }
+        return s
+      })
+    }, 8000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timer)
+    }
   }, [])
 
   if (status === 'loading') {
