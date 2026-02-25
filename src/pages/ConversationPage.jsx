@@ -25,6 +25,23 @@ function StarPicker({ rating, onChange }) {
   )
 }
 
+function Modal({ open, onClose, children }) {
+  if (!open) return null
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
 export default function ConversationPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -37,8 +54,14 @@ export default function ConversationPage() {
   const [loading, setLoading] = useState(true)
   const bottomRef = useRef(null)
 
-  // Review prompt state
-  const [showReviewPrompt, setShowReviewPrompt] = useState(false)
+  // Offer/confirm flow
+  const [offerModalOpen, setOfferModalOpen] = useState(false)
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const [processingAction, setProcessingAction] = useState(false)
+
+  // Review state
+  const [hasReviewed, setHasReviewed] = useState(false)
+  const [reviewDone, setReviewDone] = useState(false)
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewComment, setReviewComment] = useState('')
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
@@ -62,7 +85,9 @@ export default function ConversationPage() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
         payload => {
-          setMessages(prev => [...prev, payload.new])
+          setMessages(prev =>
+            prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]
+          )
         }
       )
       .subscribe()
@@ -101,18 +126,16 @@ export default function ConversationPage() {
 
     setConversation({ ...conv, otherName: otherProfile?.full_name || 'Unknown' })
 
-    // Check review eligibility: buyer is confirmed purchaser and hasn't reviewed yet
+    // If buyer, check if they already reviewed this listing
     const listing = conv.listings
-    if (listing && listing.sold_to_buyer_id === user.id) {
+    if (conv.buyer_id === user.id && listing) {
       const { data: existing } = await supabase
         .from('reviews')
         .select('id')
         .eq('listing_id', listing.id)
         .eq('reviewer_id', user.id)
         .maybeSingle()
-      if (!existing) {
-        setShowReviewPrompt(true)
-      }
+      setHasReviewed(!!existing)
     }
 
     const { data: msgs } = await supabase
@@ -133,9 +156,48 @@ export default function ConversationPage() {
       conversation_id: conversationId,
       sender_id: user.id,
       content: text.trim(),
+      type: 'text',
     })
     if (!error) setText('')
     setSending(false)
+  }
+
+  async function handleConfirmOffer() {
+    setProcessingAction(true)
+    await supabase.from('messages').insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content: 'offered to confirm this purchase',
+      type: 'sale_offer',
+    })
+    setOfferModalOpen(false)
+    setProcessingAction(false)
+  }
+
+  async function handleConfirmSale() {
+    if (!conversation) return
+    setProcessingAction(true)
+    const buyerId = conversation.buyer_id
+    const listingId = conversation.listings?.id
+
+    await supabase
+      .from('listings')
+      .update({ status: 'sold', sold_to_buyer_id: buyerId })
+      .eq('id', listingId)
+
+    await supabase.from('messages').insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content: 'confirmed the sale',
+      type: 'sale_confirmed',
+    })
+
+    setConversation(prev => ({
+      ...prev,
+      listings: { ...prev.listings, status: 'sold', sold_to_buyer_id: buyerId },
+    }))
+    setConfirmModalOpen(false)
+    setProcessingAction(false)
   }
 
   async function handleSubmitReview(e) {
@@ -159,7 +221,7 @@ export default function ConversationPage() {
       return
     }
 
-    setShowReviewPrompt(false)
+    setReviewDone(true)
     setReviewSubmitting(false)
   }
 
@@ -170,6 +232,14 @@ export default function ConversationPage() {
   }
 
   const listing = conversation.listings
+  const isBuyer = conversation.buyer_id === user.id
+  const isSeller = conversation.seller_id === user.id
+  const saleOfferMsg = [...messages].reverse().find(m => m.type === 'sale_offer')
+  const saleConfirmedMsg = messages.find(m => m.type === 'sale_confirmed')
+  const hasPendingOffer = !!saleOfferMsg && !saleConfirmedMsg
+  const saleComplete = !!saleConfirmedMsg || (listing?.status === 'sold' && listing?.sold_to_buyer_id === user.id)
+  const canOffer = isBuyer && listing?.status === 'active' && !saleOfferMsg
+  const showReviewPrompt = isBuyer && saleComplete && !hasReviewed && !reviewDone
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-120px)]">
@@ -218,6 +288,41 @@ export default function ConversationPage() {
           <p className="text-sm text-shadow-gray text-center mt-8">No messages yet. Say hello!</p>
         )}
         {messages.map(msg => {
+          if (msg.type === 'sale_offer') {
+            const senderName = msg.sender_id === user.id ? 'You' : conversation.otherName
+            return (
+              <div key={msg.id} className="flex justify-center">
+                <div className="border border-blue-200 bg-blue-50 rounded-xl p-4 max-w-sm w-full text-center">
+                  <p className="text-sm text-blue-900 font-medium">
+                    {senderName} offered to confirm this purchase
+                  </p>
+                  {isSeller && hasPendingOffer && msg.id === saleOfferMsg?.id && (
+                    <button
+                      onClick={() => setConfirmModalOpen(true)}
+                      className="mt-2 text-sm font-medium text-blue-700 hover:text-blue-900 underline"
+                    >
+                      Confirm Sale →
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          }
+
+          if (msg.type === 'sale_confirmed') {
+            const date = new Date(msg.created_at).toLocaleDateString('en-US', {
+              month: 'short', day: 'numeric', year: 'numeric',
+            })
+            return (
+              <div key={msg.id} className="flex justify-center">
+                <div className="border border-green-200 bg-green-50 rounded-xl p-4 max-w-sm w-full text-center">
+                  <p className="text-sm text-green-800 font-semibold">✓ Sale confirmed</p>
+                  <p className="text-xs text-green-600 mt-0.5">{date}</p>
+                </div>
+              </div>
+            )
+          }
+
           const isMe = msg.sender_id === user.id
           return (
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -233,45 +338,56 @@ export default function ConversationPage() {
             </div>
           )
         })}
+
+        {/* Inline review prompt */}
+        {showReviewPrompt && (
+          <div className="flex justify-center">
+            <div className="border border-yellow-200 bg-yellow-50 rounded-xl p-4 max-w-sm w-full">
+              <p className="text-sm font-medium text-gray-800 mb-3">
+                Leave <span className="font-semibold">{conversation.otherName}</span> a review!
+              </p>
+              <form onSubmit={handleSubmitReview} className="space-y-2">
+                <StarPicker rating={reviewRating} onChange={setReviewRating} />
+                <textarea
+                  value={reviewComment}
+                  onChange={e => setReviewComment(e.target.value)}
+                  rows={2}
+                  maxLength={500}
+                  placeholder="Share your experience… (optional)"
+                  className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon resize-none bg-white"
+                />
+                {reviewError && <p className="text-xs text-destructive">{reviewError}</p>}
+                <Button
+                  type="submit"
+                  disabled={reviewSubmitting}
+                  className="bg-maroon hover:bg-maroon-light text-white text-sm py-1.5 h-auto w-full"
+                >
+                  {reviewSubmitting ? 'Submitting…' : 'Submit Review'}
+                </Button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {reviewDone && (
+          <div className="flex justify-center">
+            <div className="border border-green-200 bg-green-50 rounded-xl p-3 max-w-sm w-full text-center">
+              <p className="text-sm text-green-800 font-semibold">✓ Review submitted!</p>
+            </div>
+          </div>
+        )}
+
         <div ref={bottomRef} />
       </div>
 
-      {/* Review prompt banner */}
-      {showReviewPrompt && (
-        <div className="border border-yellow-200 bg-yellow-50 rounded-xl p-4 mb-3 space-y-3">
-          <p className="text-sm font-medium text-gray-800">
-            You bought this item! Leave <span className="font-semibold">{conversation.otherName}</span> a review.
-          </p>
-          <form onSubmit={handleSubmitReview} className="space-y-2">
-            <StarPicker rating={reviewRating} onChange={setReviewRating} />
-            <textarea
-              value={reviewComment}
-              onChange={e => setReviewComment(e.target.value)}
-              rows={2}
-              maxLength={500}
-              placeholder="Share your experience… (optional)"
-              className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon resize-none bg-white"
-            />
-            {reviewError && <p className="text-xs text-destructive">{reviewError}</p>}
-            <div className="flex gap-2">
-              <Button
-                type="submit"
-                disabled={reviewSubmitting}
-                className="bg-maroon hover:bg-maroon-light text-white text-sm py-1.5 h-auto"
-              >
-                {reviewSubmitting ? 'Submitting…' : 'Submit Review'}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowReviewPrompt(false)}
-                className="text-sm text-gray-500 py-1.5 h-auto"
-              >
-                Dismiss
-              </Button>
-            </div>
-          </form>
-        </div>
+      {/* Offer Sale button (buyer only, listing active, no offer yet) */}
+      {canOffer && (
+        <button
+          onClick={() => setOfferModalOpen(true)}
+          className="w-full border border-maroon text-maroon rounded-xl py-2 text-sm font-medium hover:bg-maroon hover:text-white transition-colors mb-2"
+        >
+          Offer Sale
+        </button>
       )}
 
       {/* Input */}
@@ -291,6 +407,58 @@ export default function ConversationPage() {
           Send
         </Button>
       </form>
+
+      {/* Offer Sale modal (buyer) */}
+      <Modal open={offerModalOpen} onClose={() => setOfferModalOpen(false)}>
+        <h2 className="text-base font-semibold text-gray-900 mb-3">Before you confirm</h2>
+        <ul className="text-sm text-gray-700 space-y-2 mb-5 list-disc list-inside">
+          <li>Take a photo of the item as proof of the transaction.</li>
+          <li>Only confirm once you've physically received the item.</li>
+          <li>Only confirm once you've paid the seller.</li>
+        </ul>
+        <div className="flex flex-col gap-2">
+          <Button
+            onClick={handleConfirmOffer}
+            disabled={processingAction}
+            className="bg-maroon hover:bg-maroon-light text-white w-full"
+          >
+            {processingAction ? 'Sending…' : "I've received it and paid — Confirm"}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setOfferModalOpen(false)}
+            className="w-full text-gray-500"
+          >
+            Cancel
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Confirm Sale modal (seller) */}
+      <Modal open={confirmModalOpen} onClose={() => setConfirmModalOpen(false)}>
+        <h2 className="text-base font-semibold text-gray-900 mb-2">Confirm sale</h2>
+        <p className="text-sm text-gray-600 mb-5">
+          Have you received payment from{' '}
+          <span className="font-semibold">{conversation.otherName}</span>?
+          This will mark the listing as sold.
+        </p>
+        <div className="flex flex-col gap-2">
+          <Button
+            onClick={handleConfirmSale}
+            disabled={processingAction}
+            className="bg-maroon hover:bg-maroon-light text-white w-full"
+          >
+            {processingAction ? 'Confirming…' : 'Yes, confirm sale'}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setConfirmModalOpen(false)}
+            className="w-full text-gray-500"
+          >
+            Cancel
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }
