@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import HomePage from '@/pages/HomePage'
@@ -8,6 +9,17 @@ import VerifyEmailPage from '@/pages/VerifyEmailPage'
 import AuthCallbackPage from '@/pages/AuthCallbackPage'
 
 function App() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Supabase implicit flow puts auth results in the hash fragment.
+    // Intercept them here and send to /auth/callback for proper handling.
+    const hash = window.location.hash
+    if (hash && (hash.includes('type=signup') || hash.includes('error_code=otp'))) {
+      navigate('/auth/callback', { replace: true })
+    }
+  }, [navigate])
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

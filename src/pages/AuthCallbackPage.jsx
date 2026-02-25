@@ -9,6 +9,17 @@ export default function AuthCallbackPage() {
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
+    // Check for an error in the hash (e.g. otp_expired from implicit flow)
+    const hash = window.location.hash
+    if (hash.includes('error')) {
+      const params = new URLSearchParams(hash.replace('#', ''))
+      const desc = params.get('error_description')
+      setErrorMsg(desc ? desc.replace(/\+/g, ' ') : 'Verification failed.')
+      setStatus('error')
+      return
+    }
+
+    // Give the Supabase client a moment to process the token from the hash
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         setErrorMsg(error.message)
