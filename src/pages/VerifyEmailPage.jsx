@@ -18,7 +18,7 @@ export default function VerifyEmailPage() {
   async function handleVerify(e) {
     e.preventDefault()
     if (!email) { setError('Please enter your email address.'); return }
-    if (token.length !== 6) { setError('Please enter the 6-digit code from your email.'); return }
+    if (token.length !== 8) { setError('Please enter the 8-digit code from your email.'); return }
     setVerifying(true)
     setError('')
     const { error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
@@ -51,7 +51,7 @@ export default function VerifyEmailPage() {
           <div className="mx-auto mb-4 text-5xl">📬</div>
           <CardTitle className="text-2xl">Check your inbox</CardTitle>
           <CardDescription className="mt-2">
-            We sent a 6-digit verification code to your @colgate.edu email. Enter it below to activate your account.
+            We sent an 8-digit verification code to your @colgate.edu email. Enter it below to activate your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -76,10 +76,10 @@ export default function VerifyEmailPage() {
                 type="text"
                 inputMode="numeric"
                 placeholder="123456"
-                maxLength={6}
+                maxLength={8}
                 value={token}
                 onChange={e => { setToken(e.target.value.replace(/\D/g, '')); setError('') }}
-                className="text-center text-2xl tracking-[0.5em] font-mono"
+                className="text-center text-2xl tracking-[0.3em] font-mono"
                 autoComplete="one-time-code"
               />
             </div>
@@ -87,7 +87,7 @@ export default function VerifyEmailPage() {
             <Button
               type="submit"
               className="w-full bg-maroon hover:bg-maroon-light text-white"
-              disabled={verifying || token.length !== 6}
+              disabled={verifying || token.length !== 8}
             >
               {verifying ? 'Verifying…' : 'Verify email'}
             </Button>
