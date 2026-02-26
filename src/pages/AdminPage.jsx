@@ -13,6 +13,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('pending') // 'pending' | 'rejected'
   const [actionLoading, setActionLoading] = useState(null) // listing id being acted on
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     if (user === null) { navigate('/login', { replace: true }); return }
@@ -48,28 +49,36 @@ export default function AdminPage() {
 
   async function handleApprove(id) {
     setActionLoading(id)
-    await supabase.from('listings').update({ approval_status: 'approved' }).eq('id', id)
+    setActionError('')
+    const { error } = await supabase.from('listings').update({ approval_status: 'approved' }).eq('id', id)
+    if (error) { setActionError(`Approve failed: ${error.message}`); setActionLoading(null); return }
     setListings(prev => prev.filter(l => l.id !== id))
     setActionLoading(null)
   }
 
   async function handleReject(id) {
     setActionLoading(id)
-    await supabase.from('listings').update({ approval_status: 'rejected' }).eq('id', id)
+    setActionError('')
+    const { error } = await supabase.from('listings').update({ approval_status: 'rejected' }).eq('id', id)
+    if (error) { setActionError(`Reject failed: ${error.message}`); setActionLoading(null); return }
     setListings(prev => prev.filter(l => l.id !== id))
     setActionLoading(null)
   }
 
   async function handleRestore(id) {
     setActionLoading(id)
-    await supabase.from('listings').update({ approval_status: 'pending' }).eq('id', id)
+    setActionError('')
+    const { error } = await supabase.from('listings').update({ approval_status: 'pending' }).eq('id', id)
+    if (error) { setActionError(`Restore failed: ${error.message}`); setActionLoading(null); return }
     setListings(prev => prev.filter(l => l.id !== id))
     setActionLoading(null)
   }
 
   async function handleDelete(id) {
     setActionLoading(id)
-    await supabase.from('listings').delete().eq('id', id)
+    setActionError('')
+    const { error } = await supabase.from('listings').delete().eq('id', id)
+    if (error) { setActionError(`Delete failed: ${error.message}`); setActionLoading(null); return }
     setListings(prev => prev.filter(l => l.id !== id))
     setActionLoading(null)
   }
@@ -82,6 +91,7 @@ export default function AdminPage() {
     <div className="max-w-4xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Admin — Listing Approvals</h1>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Review and approve or reject submitted listings.</p>
+      {actionError && <p className="text-sm text-red-600 bg-red-50 dark:bg-red-950 rounded-lg px-3 py-2 mb-4">{actionError}</p>}
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
