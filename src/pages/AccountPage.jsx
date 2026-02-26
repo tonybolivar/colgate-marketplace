@@ -99,12 +99,22 @@ export default function AccountPage() {
     else data.class_year = null
     const { error } = await supabase.auth.updateUser({ data })
     if (!error) {
-      await supabase.from('profiles').upsert({
+      const oldDisplayName = user.user_metadata?.display_name
+      const upsertData = {
         id: user.id,
         display_name: data.display_name,
         account_type: data.account_type,
         class_year: data.class_year ? parseInt(data.class_year) : null,
-      })
+      }
+      // Append old display name to history if it changed
+      if (oldDisplayName && oldDisplayName !== data.display_name) {
+        const { data: current } = await supabase.from('profiles').select('display_name_history').eq('id', user.id).maybeSingle()
+        const history = current?.display_name_history || []
+        if (!history.includes(oldDisplayName)) {
+          upsertData.display_name_history = [...history, oldDisplayName]
+        }
+      }
+      await supabase.from('profiles').upsert(upsertData)
     }
     setProfileSaving(false)
     setProfileMsg(error

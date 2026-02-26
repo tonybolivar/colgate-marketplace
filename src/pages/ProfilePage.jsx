@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -86,6 +86,7 @@ export default function ProfilePage() {
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [actionStatus, setActionStatus] = useState(null)
   const [warnModalOpen, setWarnModalOpen] = useState(false)
   const [warnReason, setWarnReason] = useState('')
@@ -113,7 +114,7 @@ export default function ProfilePage() {
     setLoading(true)
 
     const [profileRes, listingsRes, reviewsRes] = await Promise.all([
-      supabase.from('profiles').select('full_name, account_type, created_at, status').eq('id', userId).single(),
+      supabase.from('profiles').select('display_name, display_name_history, account_type, created_at, status').eq('id', userId).single(),
       supabase.from('listings').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
       supabase.from('reviews').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
     ])
@@ -136,9 +137,9 @@ export default function ProfilePage() {
       const reviewerIds = [...new Set(rawReviews.map(r => r.reviewer_id))]
       const { data: reviewerProfiles } = await supabase
         .from('profiles')
-        .select('id, full_name')
+        .select('id, display_name')
         .in('id', reviewerIds)
-      const nameMap = Object.fromEntries((reviewerProfiles || []).map(p => [p.id, p.full_name]))
+      const nameMap = Object.fromEntries((reviewerProfiles || []).map(p => [p.id, p.display_name]))
 
       // Fetch listing titles for reviews
       const listingIds = [...new Set(rawReviews.map(r => r.listing_id))]
@@ -259,7 +260,9 @@ export default function ProfilePage() {
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : null
 
-  const initial = profile.full_name ? profile.full_name.charAt(0).toUpperCase() : '?'
+  const displayName = profile.display_name || 'Unknown'
+  const initial = displayName.charAt(0).toUpperCase()
+  const pastNames = (profile.display_name_history || []).filter(n => n !== displayName)
   const memberSince = profile.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : null
@@ -274,8 +277,28 @@ export default function ProfilePage() {
           {initial}
         </div>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{profile.full_name || 'Unknown'}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{displayName}</h1>
+            {pastNames.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setHistoryOpen(o => !o)}
+                  className="flex items-center gap-0.5 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <span>also known as</span>
+                  <svg viewBox="0 0 20 20" fill="currentColor" className={`w-3.5 h-3.5 transition-transform ${historyOpen ? 'rotate-180' : ''}`}>
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                {historyOpen && (
+                  <div className="absolute left-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md z-10 py-1 min-w-[140px]">
+                    {pastNames.map((name, i) => (
+                      <p key={i} className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400">{name}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             {isAdmin && actionStatus !== 'active' && (
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
                 actionStatus === 'banned' ? 'bg-red-100 text-red-700' :
@@ -485,7 +508,7 @@ export default function ProfilePage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
           onClick={() => { setWarnModalOpen(false); setWarnReason('') }}>
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Warn {profile.full_name}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Warn {displayName}</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">This reason will be shown to the user when they log in.</p>
             <textarea
               value={warnReason}
