@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 export default function VerifyEmailPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const email = location.state?.email || ''
+  const [email, setEmail] = useState(location.state?.email || '')
   const [token, setToken] = useState('')
   const [resent, setResent] = useState(false)
   const [error, setError] = useState('')
@@ -17,10 +17,8 @@ export default function VerifyEmailPage() {
 
   async function handleVerify(e) {
     e.preventDefault()
-    if (token.length !== 6) {
-      setError('Please enter the 6-digit code from your email.')
-      return
-    }
+    if (!email) { setError('Please enter your email address.'); return }
+    if (token.length !== 6) { setError('Please enter the 6-digit code from your email.'); return }
     setVerifying(true)
     setError('')
     const { error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
@@ -33,6 +31,7 @@ export default function VerifyEmailPage() {
   }
 
   async function handleResend() {
+    if (!email) { setError('Please enter your email address first.'); return }
     setLoading(true)
     setError('')
     setResent(false)
@@ -52,61 +51,61 @@ export default function VerifyEmailPage() {
           <div className="mx-auto mb-4 text-5xl">📬</div>
           <CardTitle className="text-2xl">Check your inbox</CardTitle>
           <CardDescription className="mt-2">
-            We sent a 6-digit verification code to{' '}
-            <span className="font-medium text-foreground">{email || 'your @colgate.edu email'}</span>.
-            Enter it below to activate your account.
+            We sent a 6-digit verification code to your @colgate.edu email. Enter it below to activate your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {email ? (
-            <form onSubmit={handleVerify} className="space-y-4">
+          <form onSubmit={handleVerify} className="space-y-4">
+            {!location.state?.email && (
               <div className="space-y-1">
-                <label className="text-sm font-medium" htmlFor="token">Verification code</label>
+                <label className="text-sm font-medium" htmlFor="email">Email</label>
                 <Input
-                  id="token"
-                  name="token"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="123456"
-                  maxLength={6}
-                  value={token}
-                  onChange={e => { setToken(e.target.value.replace(/\D/g, '')); setError('') }}
-                  className="text-center text-2xl tracking-[0.5em] font-mono"
-                  autoComplete="one-time-code"
+                  id="email"
+                  type="email"
+                  placeholder="you@colgate.edu"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setError('') }}
+                  autoComplete="email"
                 />
               </div>
-              {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button
-                type="submit"
-                className="w-full bg-maroon hover:bg-maroon-light text-white"
-                disabled={verifying || token.length !== 6}
-              >
-                {verifying ? 'Verifying…' : 'Verify email'}
-              </Button>
-            </form>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center">
-              Return to{' '}
-              <a href="/register" className="text-maroon hover:underline font-medium">register</a>
-              {' '}to get a new code.
-            </p>
-          )}
+            )}
+            <div className="space-y-1">
+              <label className="text-sm font-medium" htmlFor="token">Verification code</label>
+              <Input
+                id="token"
+                type="text"
+                inputMode="numeric"
+                placeholder="123456"
+                maxLength={6}
+                value={token}
+                onChange={e => { setToken(e.target.value.replace(/\D/g, '')); setError('') }}
+                className="text-center text-2xl tracking-[0.5em] font-mono"
+                autoComplete="one-time-code"
+              />
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button
+              type="submit"
+              className="w-full bg-maroon hover:bg-maroon-light text-white"
+              disabled={verifying || token.length !== 6}
+            >
+              {verifying ? 'Verifying…' : 'Verify email'}
+            </Button>
+          </form>
 
           <div className="text-center space-y-2 pt-2">
             <p className="text-sm text-muted-foreground">
               Didn't receive it? Check your spam folder or resend below.
             </p>
             {resent && <p className="text-sm text-green-600">New code sent!</p>}
-            {email && (
-              <Button
-                variant="outline"
-                onClick={handleResend}
-                disabled={loading || resent}
-                className="w-full"
-              >
-                {loading ? 'Resending…' : 'Resend code'}
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={handleResend}
+              disabled={loading || resent}
+              className="w-full"
+            >
+              {loading ? 'Resending…' : 'Resend code'}
+            </Button>
           </div>
         </CardContent>
       </Card>
