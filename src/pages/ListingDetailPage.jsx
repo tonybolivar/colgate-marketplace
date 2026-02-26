@@ -43,6 +43,7 @@ export default function ListingDetailPage() {
 
   const [confirmTakeDown, setConfirmTakeDown] = useState(false)
   const [listingRating, setListingRating] = useState(null) // { avg, count } for services
+  const [sellerResponseRate, setSellerResponseRate] = useState(null) // { rate, total }
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
@@ -80,6 +81,22 @@ export default function ListingDetailPage() {
         const avg = (revs.reduce((s, r) => s + r.rating, 0) / revs.length).toFixed(1)
         setListingRating({ avg, count: revs.length })
       }
+    }
+
+    // Seller response rate
+    const { data: convs } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('seller_id', data.seller_id)
+    if (convs && convs.length >= 3) {
+      const convIds = convs.map(c => c.id)
+      const { data: sellerMsgs } = await supabase
+        .from('messages')
+        .select('conversation_id')
+        .eq('sender_id', data.seller_id)
+        .in('conversation_id', convIds)
+      const respondedCount = new Set(sellerMsgs?.map(m => m.conversation_id) || []).size
+      setSellerResponseRate({ rate: Math.round((respondedCount / convs.length) * 100), total: convs.length })
     }
 
     setLoading(false)
@@ -262,6 +279,11 @@ export default function ListingDetailPage() {
               )}
             </p>
             <p className="text-xs text-shadow-gray dark:text-gray-400 mt-1">Posted {timeAgo(listing.created_at)}</p>
+            {sellerResponseRate !== null && (
+              <p className="text-xs text-shadow-gray dark:text-gray-400 mt-0.5">
+                Responds to {sellerResponseRate.rate}% of messages
+              </p>
+            )}
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}

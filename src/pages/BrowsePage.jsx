@@ -265,7 +265,17 @@ export default function BrowsePage() {
       {loading ? (
         <p className="text-shadow-gray dark:text-gray-400">Loading…</p>
       ) : listings.length === 0 ? (
-        <p className="text-shadow-gray dark:text-gray-400">No listings found.</p>
+        <div className="text-center py-16 space-y-3">
+          <p className="text-shadow-gray dark:text-gray-400">No listings found.</p>
+          {(search || activeCategory !== 'all' || minPrice || maxPrice) && (
+            <button
+              onClick={() => { setSearch(''); setCategory('all'); setMinPrice(''); setMaxPrice('') }}
+              className="text-sm text-maroon hover:underline"
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {listings.map(listing => (
