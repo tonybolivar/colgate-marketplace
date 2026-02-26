@@ -53,15 +53,15 @@ export default function VerifyEmailPage() {
             <div className="mx-auto mb-4 text-5xl">✅</div>
             <CardTitle className="text-2xl">Email verified!</CardTitle>
             <CardDescription>
-              Your Colgate Marketplace account is ready. You can now log in and start browsing.
+              Your Colgate Marketplace account is ready. Start browsing listings!
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/account')}
               className="w-full bg-maroon hover:bg-maroon-light text-white"
             >
-              Go to login
+              Go to your account
             </Button>
           </CardContent>
         </Card>
