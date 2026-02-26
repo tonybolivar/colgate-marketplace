@@ -1,0 +1,14 @@
+<svg width="36" height="40" viewBox="0 0 36 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Maroon background rect -->
+  <rect width="36" height="40" fill="#821019"/>
+  <!-- White shield -->
+  <path
+    d="M18 0L0 6V22C0 31.4 8 38.8 18 40C28 38.8 36 31.4 36 22V6L18 0Z"
+    fill="white"
+  />
+  <!-- Maroon C -->
+  <path
+    d="M22.5 12.5C21.2 11.6 19.7 11 18 11C13.6 11 10 14.6 10 19C10 23.4 13.6 27 18 27C19.7 27 21.2 26.4 22.5 25.5V22.2C21.4 23.3 19.8 24 18 24C15.2 24 13 21.8 13 19C13 16.2 15.2 14 18 14C19.8 14 21.4 14.7 22.5 15.8V12.5Z"
+    fill="#821019"
+  />
+</svg>
