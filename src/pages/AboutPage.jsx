@@ -29,7 +29,7 @@ export default function AboutPage() {
               rel="noopener noreferrer"
               className="text-sm text-maroon hover:underline"
             >
-              linkedin.com/in/thomas-sfikas-4014b6246
+              linkedin.com/in/thomas-sfikas/
             </a>
           </div>
         </div>
