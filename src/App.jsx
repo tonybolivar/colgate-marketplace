@@ -20,6 +20,8 @@ import ContactPage from '@/pages/ContactPage'
 import AboutPage from '@/pages/AboutPage'
 import PrivacyPage from '@/pages/PrivacyPage'
 import NotFoundPage from '@/pages/NotFoundPage'
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
+import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import { Toaster } from '@/components/ui/sonner'
 
 function App() {
@@ -41,7 +43,9 @@ function App() {
       search.includes('error=')
     )
 
-    if (hashIsAuth) {
+    if (hashIsAuth && hash.includes('type=recovery')) {
+      navigate(`/reset-password${hash}`, { replace: true })
+    } else if (hashIsAuth) {
       navigate(`/auth/callback${hash}`, { replace: true })
     } else if (searchIsAuth) {
       navigate(`/auth/callback${search}`, { replace: true })
@@ -58,6 +62,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/listings/new" element={<CreateListingPage />} />
           <Route path="/listings/:id/edit" element={<EditListingPage />} />

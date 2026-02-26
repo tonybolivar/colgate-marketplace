@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -8,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
   const [serverError, setServerError] = useState('')
+  const passwordReset = location.state?.passwordReset
   const [warning, setWarning] = useState(null) // { reason } — shown after login for warned users
   const [loading, setLoading] = useState(false)
 
@@ -38,7 +40,7 @@ export default function LoginPage() {
       setServerError(error.message)
     } else if (!data.user?.email_confirmed_at) {
       await supabase.auth.signOut()
-      setServerError('Please verify your email before logging in. Check your inbox for the confirmation link.')
+      navigate('/verify-email', { state: { email: form.email } })
     } else {
       // Check account status
       const { data: profile } = await supabase
@@ -124,7 +126,21 @@ export default function LoginPage() {
               />
             </div>
 
-            {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+            {passwordReset && (
+              <p className="text-sm text-green-600">Password updated! Log in with your new password.</p>
+            )}
+            {serverError && (
+              <div className="space-y-1">
+                <p className="text-sm text-destructive">{serverError}</p>
+                {serverError.toLowerCase().includes('invalid') && (
+                  <p className="text-sm text-muted-foreground">
+                    <Link to="/forgot-password" className="text-maroon hover:underline font-medium">
+                      Forgot your password?
+                    </Link>
+                  </p>
+                )}
+              </div>
+            )}
 
             <Button type="submit" className="w-full bg-maroon hover:bg-maroon-light text-white" disabled={loading}>
               {loading ? 'Logging in…' : 'Log in'}
