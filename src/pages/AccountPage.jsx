@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 const CURRENT_YEAR = new Date().getFullYear()
 const CLASS_YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR + i)
 
-const selectClass = 'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+const selectClass = 'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:[color-scheme:dark]'
 
 function Toggle({ checked, onChange, disabled }) {
   return (
