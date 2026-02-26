@@ -1,16 +1,84 @@
-# React + Vite
+# Colgate Marketplace
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A peer-to-peer marketplace for Colgate University students to buy, sell, and trade textbooks, furniture, electronics, clothing, services, and more — all within the Colgate community.
 
-Currently, two official plugins are available:
+Developed by **TIA Venture 2026**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Colgate email-only registration (verified accounts)
+- Browse and search listings by category
+- Create, edit, and manage listings with photo uploads
+- In-app messaging between buyers and sellers
+- In-chat sale confirmation flow with buyer/seller handshake
+- Seller reviews and star ratings
+- Admin moderation panel (listing approvals, user management)
+- Email notifications via Resend
+- Light and dark mode
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + Vite |
+| Styling | Tailwind CSS v3 + shadcn/ui |
+| Backend & Auth | Supabase (PostgreSQL + Row Level Security) |
+| File Storage | Supabase Storage |
+| Realtime | Supabase Realtime (postgres_changes) |
+| Email | Resend + Supabase Edge Functions |
+| Deployment | Vercel |
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- A Supabase project
+- A Resend account (for email notifications)
+
+### Setup
+
+```bash
+git clone https://github.com/tonybolivar/colgate-marketplace.git
+cd colgate-marketplace
+npm install
+```
+
+Copy the environment template and fill in your Supabase credentials:
+
+```bash
+cp .env.example .env.local
+```
+
+```
+VITE_SUPABASE_URL=       # Supabase project URL
+VITE_SUPABASE_ANON_KEY=  # Supabase anon/public key
+```
+
+Start the dev server:
+
+```bash
+npm run dev
+```
+
+### Database
+
+Run the SQL migrations in `supabase/migrations/` in order against your Supabase project via the SQL Editor.
+
+### Email Notifications
+
+Deploy the `supabase/functions/send-notification` edge function and set the `RESEND_API_KEY` secret in your Supabase project. Enable the `pg_net` extension under Database → Extensions.
+
+## Scripts
+
+```bash
+npm run dev      # Start dev server at http://localhost:5173
+npm run build    # Production build
+npm run preview  # Preview production build locally
+```
+
+---
+
+© 2026 TIA Venture · Colgate University · Not affiliated with Colgate University
