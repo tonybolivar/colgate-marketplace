@@ -2,7 +2,7 @@
 
 A peer-to-peer marketplace for Colgate University students to buy, sell, and trade textbooks, furniture, electronics, clothing, services, and more — all within the Colgate community.
 
-Developed by **TIA Venture 2026**.
+Developed by **Tony Bolivar** as a TIA Venture (2026).
 
 ---
 
@@ -81,4 +81,4 @@ npm run preview  # Preview production build locally
 
 ---
 
-© 2026 TIA Venture · Colgate University · Not affiliated with Colgate University
+© 2026 Tony Bolivar · Built as a TIA Venture · Not affiliated with Colgate University
