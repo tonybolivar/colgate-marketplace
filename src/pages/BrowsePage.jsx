@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -45,7 +45,7 @@ export default function BrowsePage() {
   const offsetRef = useRef(0)
   const isFetchingRef = useRef(false)
 
-  async function fetchPage(offset) {
+  const fetchPage = useCallback(async (offset) => {
     if (offset === 0) setLoading(true)
 
     const orderMap = {
@@ -108,24 +108,21 @@ export default function BrowsePage() {
     }
 
     if (offset === 0) setLoading(false)
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCategory, search, sortBy, minPrice, maxPrice])
 
-  async function loadMore() {
+  const loadMore = useCallback(async () => {
     if (isFetchingRef.current || !hasMore) return
     isFetchingRef.current = true
     setLoadingMore(true)
     await fetchPage(offsetRef.current)
     setLoadingMore(false)
     isFetchingRef.current = false
-  }
+  }, [hasMore, fetchPage])
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
   }, [user, navigate])
-
-  useEffect(() => {
-    setSearch(searchParams.get('search') || '')
-  }, [searchParams.get('search')])
 
   // Reset and reload when filters change
   useEffect(() => {
@@ -135,7 +132,7 @@ export default function BrowsePage() {
     setHasMore(true)
     setListings([])
     fetchPage(0)
-  }, [user, activeCategory, search, sortBy, minPrice, maxPrice])
+  }, [user, fetchPage])
 
   // Infinite scroll observer
   useEffect(() => {
@@ -151,7 +148,7 @@ export default function BrowsePage() {
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [hasMore, loading])
+  }, [hasMore, loading, loadMore])
 
   function setCategory(cat) {
     if (cat === 'all') setSearchParams({})
