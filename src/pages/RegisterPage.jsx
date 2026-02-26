@@ -154,6 +154,7 @@ export default function RegisterPage() {
                   <button type="button" onClick={() => setModal('terms')} className="text-maroon hover:underline font-medium">Terms of Service</button>
                   {' '}and{' '}
                   <button type="button" onClick={() => setModal('privacy')} className="text-maroon hover:underline font-medium">Privacy Policy</button>
+                  {' '}and consent to receiving marketing emails from Colgate Marketplace.
                 </span>
               </label>
               {errors.agreed && <p className="text-xs text-destructive">{errors.agreed}</p>}
