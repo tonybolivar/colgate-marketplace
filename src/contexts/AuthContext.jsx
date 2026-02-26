@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
@@ -7,14 +7,17 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined) // undefined = still loading
   const [isAdmin, setIsAdmin] = useState(false)
+  const userRef = useRef(undefined)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user && !session.user.email_confirmed_at) {
         supabase.auth.signOut()
+        userRef.current = null
         setUser(null)
         return
       }
+      userRef.current = session?.user ?? null
       setUser(session?.user ?? null)
       if (session?.user) fetchIsAdmin(session.user.id)
     })
@@ -22,18 +25,20 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user && !session.user.email_confirmed_at) {
         supabase.auth.signOut()
+        userRef.current = null
         setUser(null)
         setIsAdmin(false)
         return
       }
-      const prevUser = user
+      const hadUser = !!userRef.current
+      userRef.current = session?.user ?? null
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchIsAdmin(session.user.id)
         if (event === 'SIGNED_IN') toast.success('Successfully logged in!')
       } else {
         setIsAdmin(false)
-        if (event === 'SIGNED_OUT' && prevUser) toast.success('Successfully logged out!')
+        if (event === 'SIGNED_OUT' && hadUser) toast.success('Successfully logged out!')
       }
     })
 
