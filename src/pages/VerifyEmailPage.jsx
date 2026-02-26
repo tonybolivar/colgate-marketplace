@@ -1,19 +1,41 @@
 import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 export default function VerifyEmailPage() {
   const location = useLocation()
+  const navigate = useNavigate()
   const email = location.state?.email || ''
+  const [token, setToken] = useState('')
   const [resent, setResent] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [verifying, setVerifying] = useState(false)
+
+  async function handleVerify(e) {
+    e.preventDefault()
+    if (token.length !== 6) {
+      setError('Please enter the 6-digit code from your email.')
+      return
+    }
+    setVerifying(true)
+    setError('')
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
+    setVerifying(false)
+    if (error) {
+      setError(error.message)
+    } else {
+      navigate('/', { replace: true })
+    }
+  }
 
   async function handleResend() {
     setLoading(true)
     setError('')
+    setResent(false)
     const { error } = await supabase.auth.resend({ type: 'signup', email })
     setLoading(false)
     if (error) {
@@ -25,34 +47,67 @@ export default function VerifyEmailPage() {
 
   return (
     <div className="min-h-[calc(100vh-120px)] flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
           <div className="mx-auto mb-4 text-5xl">📬</div>
           <CardTitle className="text-2xl">Check your inbox</CardTitle>
           <CardDescription className="mt-2">
-            We sent a confirmation link to{' '}
+            We sent a 6-digit verification code to{' '}
             <span className="font-medium text-foreground">{email || 'your @colgate.edu email'}</span>.
-            Click the link to activate your account.
+            Enter it below to activate your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Didn't receive it? Check your spam folder or resend below.
-          </p>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          {resent && (
-            <p className="text-sm text-green-600">Confirmation email resent!</p>
+          {email ? (
+            <form onSubmit={handleVerify} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium" htmlFor="token">Verification code</label>
+                <Input
+                  id="token"
+                  name="token"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="123456"
+                  maxLength={6}
+                  value={token}
+                  onChange={e => { setToken(e.target.value.replace(/\D/g, '')); setError('') }}
+                  className="text-center text-2xl tracking-[0.5em] font-mono"
+                  autoComplete="one-time-code"
+                />
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button
+                type="submit"
+                className="w-full bg-maroon hover:bg-maroon-light text-white"
+                disabled={verifying || token.length !== 6}
+              >
+                {verifying ? 'Verifying…' : 'Verify email'}
+              </Button>
+            </form>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center">
+              Return to{' '}
+              <a href="/register" className="text-maroon hover:underline font-medium">register</a>
+              {' '}to get a new code.
+            </p>
           )}
-          {email && (
-            <Button
-              variant="outline"
-              onClick={handleResend}
-              disabled={loading || resent}
-              className="w-full"
-            >
-              {loading ? 'Resending…' : 'Resend confirmation email'}
-            </Button>
-          )}
+
+          <div className="text-center space-y-2 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Didn't receive it? Check your spam folder or resend below.
+            </p>
+            {resent && <p className="text-sm text-green-600">New code sent!</p>}
+            {email && (
+              <Button
+                variant="outline"
+                onClick={handleResend}
+                disabled={loading || resent}
+                className="w-full"
+              >
+                {loading ? 'Resending…' : 'Resend code'}
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
