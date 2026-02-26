@@ -278,29 +278,15 @@ export default function ListingDetailPage() {
               {listing.status === 'active' && (
                 confirmTakeDown ? (
                   <div className="flex gap-2">
-                    <Button
-                      onClick={handleTakeDown}
-                      disabled={actionLoading}
-                      variant="destructive"
-                      className="flex-1"
-                    >
+                    <Button onClick={handleTakeDown} disabled={actionLoading} variant="destructive" className="flex-1">
                       {actionLoading ? 'Removing…' : 'Yes, take down'}
                     </Button>
-                    <Button
-                      onClick={() => setConfirmTakeDown(false)}
-                      disabled={actionLoading}
-                      variant="outline"
-                      className="flex-1"
-                    >
+                    <Button onClick={() => setConfirmTakeDown(false)} disabled={actionLoading} variant="outline" className="flex-1">
                       Cancel
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    onClick={() => setConfirmTakeDown(true)}
-                    variant="outline"
-                    className="w-full text-gray-600 dark:text-gray-400"
-                  >
+                  <Button onClick={() => setConfirmTakeDown(true)} variant="outline" className="w-full text-gray-600 dark:text-gray-400">
                     Take Down Listing
                   </Button>
                 )
@@ -309,72 +295,57 @@ export default function ListingDetailPage() {
                 <p className="text-sm text-center text-shadow-gray dark:text-gray-400">This listing has been taken down.</p>
               )}
             </div>
-          ) : isAdminViewing ? (
+          ) : (
             <div className="space-y-2">
-              <p className="text-xs text-center text-amber-600 font-medium bg-amber-50 rounded-lg py-1">Admin controls</p>
-              <Button
-                onClick={() => navigate(`/listings/${id}/edit`)}
-                variant="outline"
-                className="w-full"
-              >
-                Edit Listing
-              </Button>
               {listing.status === 'active' && (
-                confirmTakeDown ? (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleTakeDown}
-                      disabled={actionLoading}
-                      variant="destructive"
-                      className="flex-1"
-                    >
-                      {actionLoading ? 'Closing…' : 'Yes, close listing'}
-                    </Button>
-                    <Button
-                      onClick={() => setConfirmTakeDown(false)}
-                      disabled={actionLoading}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => setConfirmTakeDown(true)}
-                    variant="outline"
-                    className="w-full text-gray-600 dark:text-gray-400"
-                  >
-                    Close Listing
-                  </Button>
-                )
-              )}
-              {listing.status === 'archived' && (
                 <Button
-                  onClick={async () => {
-                    setActionLoading(true)
-                    await supabase.from('listings').update({ status: 'active' }).eq('id', id)
-                    setListing(l => ({ ...l, status: 'active' }))
-                    setActionLoading(false)
-                  }}
+                  onClick={handleMessage}
                   disabled={actionLoading}
-                  variant="outline"
-                  className="w-full text-green-700 border-green-300 hover:bg-green-50"
+                  className="w-full bg-maroon hover:bg-maroon-light text-white"
                 >
-                  Reopen Listing
+                  {actionLoading ? 'Opening chat…' : 'Message Seller'}
                 </Button>
               )}
+              {isAdminViewing && (
+                <div className="space-y-2 pt-1 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-center text-amber-600 font-medium bg-amber-50 dark:bg-amber-950/30 rounded-lg py-1">Admin controls</p>
+                  <Button onClick={() => navigate(`/listings/${id}/edit`)} variant="outline" className="w-full">
+                    Edit Listing
+                  </Button>
+                  {listing.status === 'active' && (
+                    confirmTakeDown ? (
+                      <div className="flex gap-2">
+                        <Button onClick={handleTakeDown} disabled={actionLoading} variant="destructive" className="flex-1">
+                          {actionLoading ? 'Closing…' : 'Yes, close listing'}
+                        </Button>
+                        <Button onClick={() => setConfirmTakeDown(false)} disabled={actionLoading} variant="outline" className="flex-1">
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button onClick={() => setConfirmTakeDown(true)} variant="outline" className="w-full text-gray-600 dark:text-gray-400">
+                        Close Listing
+                      </Button>
+                    )
+                  )}
+                  {listing.status === 'archived' && (
+                    <Button
+                      onClick={async () => {
+                        setActionLoading(true)
+                        await supabase.from('listings').update({ status: 'active' }).eq('id', id)
+                        setListing(l => ({ ...l, status: 'active' }))
+                        setActionLoading(false)
+                      }}
+                      disabled={actionLoading}
+                      variant="outline"
+                      className="w-full text-green-700 border-green-300 hover:bg-green-50"
+                    >
+                      Reopen Listing
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
-          ) : (
-            listing.status === 'active' && (
-              <Button
-                onClick={handleMessage}
-                disabled={actionLoading}
-                className="w-full bg-maroon hover:bg-maroon-light text-white"
-              >
-                {actionLoading ? 'Opening chat…' : 'Message Seller'}
-              </Button>
-            )
           )}
         </div>
       </div>
