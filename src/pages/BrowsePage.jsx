@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -35,68 +35,43 @@ export default function BrowsePage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [search, setSearch] = useState(searchParams.get('search') || '')
+  const [sortBy, setSortBy] = useState('newest')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const activeCategory = searchParams.get('category') || 'all'
 
   const sentinelRef = useRef(null)
   const offsetRef = useRef(0)
   const isFetchingRef = useRef(false)
 
-  useEffect(() => {
-    if (user === null) navigate('/login', { replace: true })
-  }, [user, navigate])
+  const fetchPage = useCallback(async (offset) => {
+    if (offset === 0) {
+      setLoading(true)
+      setHasMore(true)
+      setListings([])
+    }
 
-  useEffect(() => {
-    setSearch(searchParams.get('search') || '')
-  }, [searchParams.get('search')])
-
-  // Reset and reload when filters change
-  useEffect(() => {
-    if (!user) return
-    offsetRef.current = 0
-    isFetchingRef.current = false
-    setHasMore(true)
-    setListings([])
-    fetchPage(0)
-  }, [user, activeCategory, search])
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const el = sentinelRef.current
-    if (!el || !hasMore || loading) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !isFetchingRef.current) {
-          loadMore()
-        }
-      },
-      { rootMargin: '400px' }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [hasMore, loading])
-
-  async function loadMore() {
-    if (isFetchingRef.current || !hasMore) return
-    isFetchingRef.current = true
-    setLoadingMore(true)
-    await fetchPage(offsetRef.current)
-    setLoadingMore(false)
-    isFetchingRef.current = false
-  }
-
-  async function fetchPage(offset) {
-    if (offset === 0) setLoading(true)
+    const orderMap = {
+      newest: { col: 'created_at', asc: false },
+      oldest: { col: 'created_at', asc: true },
+      price_asc: { col: 'price', asc: true },
+      price_desc: { col: 'price', asc: false },
+    }
+    const { col, asc } = orderMap[sortBy] || orderMap.newest
 
     let query = supabase
       .from('listings')
       .select('*')
       .eq('status', 'active')
       .eq('approval_status', 'approved')
-      .order('created_at', { ascending: false })
+      .order(col, { ascending: asc })
       .range(offset, offset + PAGE_SIZE - 1)
 
     if (activeCategory !== 'all') query = query.eq('category', activeCategory)
     if (search.trim()) query = query.ilike('title', `%${search.trim()}%`)
+    if (minPrice !== '') query = query.gte('price', parseFloat(minPrice))
+    if (maxPrice !== '') query = query.lte('price', parseFloat(maxPrice))
 
     const { data, error } = await query
 
@@ -137,7 +112,45 @@ export default function BrowsePage() {
     }
 
     if (offset === 0) setLoading(false)
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCategory, search, sortBy, minPrice, maxPrice])
+
+  const loadMore = useCallback(async () => {
+    if (isFetchingRef.current || !hasMore) return
+    isFetchingRef.current = true
+    setLoadingMore(true)
+    await fetchPage(offsetRef.current)
+    setLoadingMore(false)
+    isFetchingRef.current = false
+  }, [hasMore, fetchPage])
+
+  useEffect(() => {
+    if (user === null) navigate('/login', { replace: true })
+  }, [user, navigate])
+
+  // Reset and reload when filters change
+  useEffect(() => {
+    if (!user) return
+    offsetRef.current = 0
+    isFetchingRef.current = false
+    fetchPage(0)
+  }, [user, fetchPage])
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !hasMore || loading) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isFetchingRef.current) {
+          loadMore()
+        }
+      },
+      { rootMargin: '400px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasMore, loading, loadMore])
 
   function setCategory(cat) {
     if (cat === 'all') setSearchParams({})
@@ -150,14 +163,75 @@ export default function BrowsePage() {
     <div className="max-w-6xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold text-maroon mb-6">Browse Listings</h1>
 
-      {/* Search */}
-      <div className="mb-6">
-        <Input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search listings…"
-          className="max-w-sm"
-        />
+      {/* Search + Filter button */}
+      <div className="mb-4">
+        <div className="flex gap-2 max-w-sm">
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search listings…"
+          />
+          <button
+            onClick={() => setFiltersOpen(o => !o)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-sm font-medium transition-colors flex-shrink-0 ${
+              filtersOpen || sortBy !== 'newest' || minPrice || maxPrice
+                ? 'border-maroon bg-maroon/5 text-maroon'
+                : 'border-input text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+            }`}
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L13 10.414V17a1 1 0 01-.553.894l-4-2A1 1 0 018 15v-4.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+            </svg>
+            Filters
+          </button>
+        </div>
+
+        {/* Filter panel */}
+        {filtersOpen && (
+          <div className="mt-2 p-4 border border-input rounded-lg bg-white dark:bg-gray-900 max-w-sm space-y-4">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sort by</label>
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Price range</label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Min $"
+                  value={minPrice}
+                  onChange={e => setMinPrice(e.target.value)}
+                />
+                <span className="text-sm text-muted-foreground flex-shrink-0">—</span>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Max $"
+                  value={maxPrice}
+                  onChange={e => setMaxPrice(e.target.value)}
+                />
+              </div>
+            </div>
+            {(sortBy !== 'newest' || minPrice || maxPrice) && (
+              <button
+                onClick={() => { setSortBy('newest'); setMinPrice(''); setMaxPrice('') }}
+                className="text-xs text-maroon hover:underline"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Category pills */}

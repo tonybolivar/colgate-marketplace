@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -105,12 +105,7 @@ export default function ProfilePage() {
     if (user === null) navigate('/login', { replace: true })
   }, [user, navigate])
 
-  useEffect(() => {
-    if (!user || !userId) return
-    fetchAll()
-  }, [user, userId])
-
-  async function fetchAll() {
+  const fetchAll = useCallback(async () => {
     setLoading(true)
 
     const [profileRes, listingsRes, reviewsRes] = await Promise.all([
@@ -182,7 +177,13 @@ export default function ProfilePage() {
     }
 
     setLoading(false)
-  }
+  }, [userId, user])
+
+  useEffect(() => {
+    if (!user || !userId) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAll()
+  }, [user, userId, fetchAll])
 
   async function handleAdminAction(newStatus) {
     setMenuOpen(false)
