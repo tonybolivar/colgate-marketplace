@@ -14,6 +14,7 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [verifying, setVerifying] = useState(false)
+  const [verified, setVerified] = useState(false)
 
   async function handleVerify(e) {
     e.preventDefault()
@@ -26,7 +27,7 @@ export default function VerifyEmailPage() {
     if (error) {
       setError(error.message)
     } else {
-      navigate('/', { replace: true })
+      setVerified(true)
     }
   }
 
@@ -42,6 +43,30 @@ export default function VerifyEmailPage() {
     } else {
       setResent(true)
     }
+  }
+
+  if (verified) {
+    return (
+      <div className="min-h-[calc(100vh-120px)] flex items-center justify-center px-4 py-12">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <div className="mx-auto mb-4 text-5xl">✅</div>
+            <CardTitle className="text-2xl">Email verified!</CardTitle>
+            <CardDescription>
+              Your Colgate Marketplace account is ready. You can now log in and start browsing.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => navigate('/login')}
+              className="w-full bg-maroon hover:bg-maroon-light text-white"
+            >
+              Go to login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
