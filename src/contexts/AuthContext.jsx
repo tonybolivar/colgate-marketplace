@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchIsAdmin(session.user.id)
-        if (event === 'SIGNED_IN' && initializedRef.current) toast.success('Successfully logged in!')
+        if (event === 'SIGNED_IN' && initializedRef.current && !hadUser) toast.success('Successfully logged in!')
       } else {
         setIsAdmin(false)
         if (event === 'SIGNED_OUT' && hadUser) toast.success('Successfully logged out!')
