@@ -100,7 +100,7 @@ export default function VerifyEmailPage() {
                 id="token"
                 type="text"
                 inputMode="numeric"
-                placeholder="123456"
+                placeholder="12345678"
                 maxLength={8}
                 value={token}
                 onChange={e => { setToken(e.target.value.replace(/\D/g, '')); setError('') }}
