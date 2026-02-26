@@ -14,7 +14,7 @@ export default function TermsContent() {
       <section className="space-y-2">
         <h2 className="font-semibold text-gray-900">2. Eligibility</h2>
         <p>The Platform is primarily available to current students, faculty, and staff of Colgate University with a valid <strong>@colgate.edu</strong> email address. You must be at least 18 years of age to register.</p>
-        <p>Hamilton, NY residents and other individuals or organizations outside the Colgate community may be granted special accounts at our discretion, including business accounts. Access for such users is subject to approval and may be subject to additional terms.</p>
+        <p>Individuals or organizations outside the Colgate community may be granted special accounts at our discretion, including business accounts. Access for such users is subject to approval and may be subject to additional terms.</p>
       </section>
 
       <section className="space-y-2">
