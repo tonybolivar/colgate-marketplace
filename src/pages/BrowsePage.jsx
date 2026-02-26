@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { CATEGORIES } from '@/lib/categories'
 import { Input } from '@/components/ui/input'
+
+const PAGE_SIZE = 16
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -30,8 +32,14 @@ export default function BrowsePage() {
 
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const activeCategory = searchParams.get('category') || 'all'
+
+  const sentinelRef = useRef(null)
+  const offsetRef = useRef(0)
+  const isFetchingRef = useRef(false)
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
@@ -41,44 +49,71 @@ export default function BrowsePage() {
     setSearch(searchParams.get('search') || '')
   }, [searchParams.get('search')])
 
+  // Reset and reload when filters change
   useEffect(() => {
     if (!user) return
-    fetchListings()
+    offsetRef.current = 0
+    isFetchingRef.current = false
+    setHasMore(true)
+    setListings([])
+    fetchPage(0)
   }, [user, activeCategory, search])
 
-  async function fetchListings() {
-    setLoading(true)
+  // Infinite scroll observer
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !hasMore || loading) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isFetchingRef.current) {
+          loadMore()
+        }
+      },
+      { rootMargin: '400px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasMore, loading])
+
+  async function loadMore() {
+    if (isFetchingRef.current || !hasMore) return
+    isFetchingRef.current = true
+    setLoadingMore(true)
+    await fetchPage(offsetRef.current)
+    setLoadingMore(false)
+    isFetchingRef.current = false
+  }
+
+  async function fetchPage(offset) {
+    if (offset === 0) setLoading(true)
+
     let query = supabase
       .from('listings')
       .select('*')
       .eq('status', 'active')
       .eq('approval_status', 'approved')
       .order('created_at', { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1)
 
-    if (activeCategory !== 'all') {
-      query = query.eq('category', activeCategory)
-    }
-    if (search.trim()) {
-      query = query.ilike('title', `%${search.trim()}%`)
-    }
+    if (activeCategory !== 'all') query = query.eq('category', activeCategory)
+    if (search.trim()) query = query.ilike('title', `%${search.trim()}%`)
 
     const { data, error } = await query
+
     if (!error && data) {
       const sellerIds = [...new Set(data.map(l => l.seller_id))]
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', sellerIds)
-      const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
+      let profileMap = {}
+      if (sellerIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles').select('id, full_name').in('id', sellerIds)
+        profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
+      }
 
-      // Fetch ratings for service listings
       const serviceIds = data.filter(l => l.category === 'services').map(l => l.id)
       let ratingMap = {}
       if (serviceIds.length > 0) {
         const { data: revs } = await supabase
-          .from('reviews')
-          .select('listing_id, rating')
-          .in('listing_id', serviceIds)
+          .from('reviews').select('listing_id, rating').in('listing_id', serviceIds)
         if (revs) {
           for (const r of revs) {
             if (!ratingMap[r.listing_id]) ratingMap[r.listing_id] = []
@@ -87,23 +122,26 @@ export default function BrowsePage() {
         }
       }
 
-      setListings(data.map(l => {
+      const enriched = data.map(l => {
         const ratings = ratingMap[l.id]
         const avgRating = ratings
           ? (ratings.reduce((s, r) => s + r, 0) / ratings.length).toFixed(1)
           : null
         return { ...l, profiles: profileMap[l.seller_id] || null, avgRating, reviewCount: ratings?.length ?? 0 }
-      }))
+      })
+
+      offsetRef.current = offset + data.length
+      setHasMore(data.length === PAGE_SIZE)
+      if (offset === 0) setListings(enriched)
+      else setListings(prev => [...prev, ...enriched])
     }
-    setLoading(false)
+
+    if (offset === 0) setLoading(false)
   }
 
   function setCategory(cat) {
-    if (cat === 'all') {
-      setSearchParams({})
-    } else {
-      setSearchParams({ category: cat })
-    }
+    if (cat === 'all') setSearchParams({})
+    else setSearchParams({ category: cat })
   }
 
   if (!user) return null
@@ -162,7 +200,6 @@ export default function BrowsePage() {
               to={`/listings/${listing.id}`}
               className="group border border-winter-gray dark:border-gray-700 rounded-xl overflow-hidden hover:border-maroon hover:shadow-md transition-all"
             >
-              {/* Thumbnail */}
               <div className="aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
                 {listing.images && listing.images.length > 0 ? (
                   <img
@@ -177,7 +214,6 @@ export default function BrowsePage() {
                 )}
               </div>
 
-              {/* Info */}
               <div className="p-3 space-y-1">
                 <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate group-hover:text-maroon transition-colors">
                   {listing.title}
@@ -214,6 +250,15 @@ export default function BrowsePage() {
             </Link>
           ))}
         </div>
+      )}
+
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="h-1" />
+      {loadingMore && (
+        <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-6">Loading more…</p>
+      )}
+      {!hasMore && listings.length > 0 && !loading && (
+        <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-6">You've seen all listings</p>
       )}
     </div>
   )

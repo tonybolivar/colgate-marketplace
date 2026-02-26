@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+
+const PAGE_SIZE = 20
 
 function timeAgo(dateStr) {
   if (!dateStr) return ''
@@ -17,8 +19,15 @@ function timeAgo(dateStr) {
 export default function MessagesPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+
   const [conversations, setConversations] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+
+  const sentinelRef = useRef(null)
+  const offsetRef = useRef(0)
+  const isFetchingRef = useRef(false)
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
@@ -26,24 +35,53 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!user) return
-    fetchConversations()
+    fetchPage(0)
   }, [user])
 
-  async function fetchConversations() {
-    setLoading(true)
+  // Infinite scroll observer
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !hasMore || loading) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isFetchingRef.current) {
+          loadMore()
+        }
+      },
+      { rootMargin: '400px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasMore, loading])
+
+  async function loadMore() {
+    if (isFetchingRef.current || !hasMore) return
+    isFetchingRef.current = true
+    setLoadingMore(true)
+    await fetchPage(offsetRef.current)
+    setLoadingMore(false)
+    isFetchingRef.current = false
+  }
+
+  async function fetchPage(offset) {
+    if (offset === 0) setLoading(true)
+
     const { data, error } = await supabase
       .from('conversations')
-      .select(`id, created_at, listing_id, buyer_id, seller_id, listings(id, title, price, images, status), messages(content, created_at)`)
+      .select(`id, created_at, last_message_at, last_message_content, listing_id, buyer_id, seller_id,
+               listings(id, title, price, images, status)`)
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-      .order('created_at', { ascending: false })
+      .order('last_message_at', { ascending: false, nullsFirst: false })
+      .range(offset, offset + PAGE_SIZE - 1)
 
     if (!error && data) {
       const allIds = [...new Set(data.flatMap(c => [c.buyer_id, c.seller_id]))]
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', allIds)
-      const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
+      let profileMap = {}
+      if (allIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles').select('id, full_name').in('id', allIds)
+        profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
+      }
 
       const enriched = data.map(c => ({
         ...c,
@@ -51,18 +89,13 @@ export default function MessagesPage() {
         seller: profileMap[c.seller_id] || null,
       }))
 
-      const sorted = enriched.sort((a, b) => {
-        const aLast = a.messages?.length
-          ? Math.max(...a.messages.map(m => new Date(m.created_at).getTime()))
-          : new Date(a.created_at).getTime()
-        const bLast = b.messages?.length
-          ? Math.max(...b.messages.map(m => new Date(m.created_at).getTime()))
-          : new Date(b.created_at).getTime()
-        return bLast - aLast
-      })
-      setConversations(sorted)
+      offsetRef.current = offset + data.length
+      setHasMore(data.length === PAGE_SIZE)
+      if (offset === 0) setConversations(enriched)
+      else setConversations(prev => [...prev, ...enriched])
     }
-    setLoading(false)
+
+    if (offset === 0) setLoading(false)
   }
 
   if (!user) return null
@@ -82,12 +115,6 @@ export default function MessagesPage() {
             const otherName = isBuyer
               ? conv.seller?.full_name || 'Unknown'
               : conv.buyer?.full_name || 'Unknown'
-            const lastMsg = conv.messages?.length
-              ? conv.messages.reduce((latest, m) =>
-                  new Date(m.created_at) > new Date(latest.created_at) ? m : latest
-                )
-              : null
-
             const listing = conv.listings
 
             return (
@@ -99,12 +126,12 @@ export default function MessagesPage() {
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{otherName}</p>
-                    {lastMsg && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-0.5">{lastMsg.content}</p>
+                    {conv.last_message_content && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-0.5">{conv.last_message_content}</p>
                     )}
                   </div>
-                  {lastMsg && (
-                    <span className="text-xs text-shadow-gray dark:text-gray-400 whitespace-nowrap">{timeAgo(lastMsg.created_at)}</span>
+                  {conv.last_message_at && (
+                    <span className="text-xs text-shadow-gray dark:text-gray-400 whitespace-nowrap">{timeAgo(conv.last_message_at)}</span>
                   )}
                 </div>
                 {listing?.title && (
@@ -131,6 +158,12 @@ export default function MessagesPage() {
             )
           })}
         </div>
+      )}
+
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="h-1" />
+      {loadingMore && (
+        <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-6">Loading more…</p>
       )}
     </div>
   )
