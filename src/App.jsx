@@ -20,6 +20,7 @@ import ContactPage from '@/pages/ContactPage'
 import AboutPage from '@/pages/AboutPage'
 import PrivacyPage from '@/pages/PrivacyPage'
 import NotFoundPage from '@/pages/NotFoundPage'
+import { Toaster } from '@/components/ui/sonner'
 
 function App() {
   const navigate = useNavigate()
@@ -73,6 +74,7 @@ function App() {
         </Routes>
       </main>
       <Footer />
+      <Toaster position="bottom-right" richColors />
     </div>
   )
 }
