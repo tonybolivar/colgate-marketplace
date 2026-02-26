@@ -46,7 +46,11 @@ export default function BrowsePage() {
   const isFetchingRef = useRef(false)
 
   const fetchPage = useCallback(async (offset) => {
-    if (offset === 0) setLoading(true)
+    if (offset === 0) {
+      setLoading(true)
+      setHasMore(true)
+      setListings([])
+    }
 
     const orderMap = {
       newest: { col: 'created_at', asc: false },
@@ -129,11 +133,6 @@ export default function BrowsePage() {
     if (!user) return
     offsetRef.current = 0
     isFetchingRef.current = false
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHasMore(true)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setListings([])
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPage(0)
   }, [user, fetchPage])
 
