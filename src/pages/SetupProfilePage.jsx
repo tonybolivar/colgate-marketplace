@@ -31,6 +31,8 @@ export default function SetupProfilePage() {
     if (!authError) {
       await supabase.from('profiles').upsert({
         id: user.id,
+        display_name: user.user_metadata?.display_name || null,
+        full_name: user.user_metadata?.full_name || null,
         account_type: accountType,
         class_year: accountType === 'student' ? parseInt(classYear) : null,
       })
