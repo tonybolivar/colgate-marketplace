@@ -114,7 +114,7 @@ export default function ProfilePage() {
     setLoading(true)
 
     const [profileRes, listingsRes, reviewsRes] = await Promise.all([
-      supabase.from('profiles').select('display_name, full_name, display_name_history, account_type, created_at, status').eq('id', userId).single(),
+      supabase.from('profiles').select('display_name, full_name, display_name_history, account_type, class_year, created_at, status').eq('id', userId).single(),
       supabase.from('listings').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
       supabase.from('reviews').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
     ])
@@ -310,7 +310,7 @@ export default function ProfilePage() {
           <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-600 dark:text-gray-400">
             {profile.account_type && (
               <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full capitalize text-xs">
-                {profile.account_type}
+                {profile.account_type}{profile.account_type === 'student' && profile.class_year ? ` '${String(profile.class_year).slice(-2)}` : ''}
               </span>
             )}
             {memberSince && <span>Member since {memberSince}</span>}
