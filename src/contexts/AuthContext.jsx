@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined) // undefined = still loading
   const [isAdmin, setIsAdmin] = useState(false)
   const userRef = useRef(undefined)
+  const initializedRef = useRef(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -20,6 +21,7 @@ export function AuthProvider({ children }) {
       userRef.current = session?.user ?? null
       setUser(session?.user ?? null)
       if (session?.user) fetchIsAdmin(session.user.id)
+      initializedRef.current = true
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -35,7 +37,7 @@ export function AuthProvider({ children }) {
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchIsAdmin(session.user.id)
-        if (event === 'SIGNED_IN') toast.success('Successfully logged in!')
+        if (event === 'SIGNED_IN' && initializedRef.current) toast.success('Successfully logged in!')
       } else {
         setIsAdmin(false)
         if (event === 'SIGNED_OUT' && hadUser) toast.success('Successfully logged out!')
