@@ -182,11 +182,11 @@ export default function RegisterPage() {
         onClick={() => setModal(null)}
       >
         <div
-          className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+          className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col"
           onClick={e => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
-            <h2 className="font-semibold text-gray-900">{modal === 'terms' ? 'Terms of Service' : 'Privacy Policy'}</h2>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{modal === 'terms' ? 'Terms of Service' : 'Privacy Policy'}</h2>
             <button
               onClick={() => setModal(null)}
               className="text-gray-400 hover:text-gray-600 transition-colors"

@@ -1,9 +1,9 @@
 export default function PrivacyContent() {
   return (
-    <div className="space-y-6 text-sm text-gray-700 leading-relaxed">
+    <div className="space-y-6 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Privacy Policy</h1>
-        <p className="text-gray-500 text-xs">Last updated February 26, 2026</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Privacy Policy</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-xs">Last updated February 26, 2026</p>
       </div>
 
       <p>This Privacy Notice for Colgate Marketplace ("we," "us," or "our") describes how and why we might access, collect, store, use, and/or share your personal information when you use our services, including when you visit <a href="https://www.colgatemarket.com" className="text-maroon hover:underline">colgatemarket.com</a>, use our mobile application, or otherwise interact with us.</p>
@@ -11,7 +11,7 @@ export default function PrivacyContent() {
       <p><strong>Questions or concerns?</strong> Contact us at <a href="mailto:colgatemarketplace13@gmail.com" className="text-maroon hover:underline">colgatemarketplace13@gmail.com</a>.</p>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">Summary of Key Points</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">Summary of Key Points</h2>
         <ul className="list-disc list-inside space-y-1 ml-2">
           <li>We collect personal information you provide when registering and using the platform.</li>
           <li>We do not process sensitive personal information.</li>
@@ -23,7 +23,7 @@ export default function PrivacyContent() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">1. What Information Do We Collect?</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">1. What Information Do We Collect?</h2>
         <p><strong>Information you provide:</strong> When you register or use our Services, we may collect your name, email address, username, and password.</p>
         <p><strong>Sensitive information:</strong> We do not process sensitive information such as racial or ethnic origin, health data, or financial account details.</p>
         <p><strong>Mobile application data:</strong> If you use our app, we may request access to your device's camera and location. We may also automatically collect device identifiers, operating system information, and push notification tokens. You can manage these permissions in your device settings.</p>
@@ -32,7 +32,7 @@ export default function PrivacyContent() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">2. How Do We Process Your Information?</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">2. How Do We Process Your Information?</h2>
         <p>We process your information to:</p>
         <ul className="list-disc list-inside space-y-1 ml-2">
           <li>Create and manage your account</li>
@@ -46,7 +46,7 @@ export default function PrivacyContent() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">3. When and With Whom Do We Share Your Information?</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">3. When and With Whom Do We Share Your Information?</h2>
         <p>We may share your information in the following situations:</p>
         <ul className="list-disc list-inside space-y-1 ml-2">
           <li><strong>Business transfers:</strong> In connection with a merger, acquisition, or sale of assets.</li>
@@ -57,57 +57,57 @@ export default function PrivacyContent() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">4. Third-Party Websites</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">4. Third-Party Websites</h2>
         <p>Our Services may link to third-party websites or applications not affiliated with us. We are not responsible for the privacy practices or content of those third parties. We encourage you to review their privacy policies before sharing any information with them.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">5. How Long Do We Keep Your Information?</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">5. How Long Do We Keep Your Information?</h2>
         <p>We retain your personal information for as long as your account is active or as needed to provide our Services. Upon account termination, we will retain data for no longer than 12 months, unless a longer period is required by law. When data is no longer needed, we delete or anonymize it.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">6. How Do We Keep Your Information Safe?</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">6. How Do We Keep Your Information Safe?</h2>
         <p>We implement appropriate technical and organizational security measures to protect your personal information. However, no system is 100% secure. You access our Services at your own risk and should do so only within a secure environment.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">7. Do We Collect Information From Minors?</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">7. Do We Collect Information From Minors?</h2>
         <p>We do not knowingly collect data from or market to children under 18. By using the Services, you represent that you are at least 18 years of age. If you believe we have collected data from a minor, contact us at <a href="mailto:colgatemarketplace13@gmail.com" className="text-maroon hover:underline">colgatemarketplace13@gmail.com</a> and we will promptly remove it.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">8. What Are Your Privacy Rights?</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">8. What Are Your Privacy Rights?</h2>
         <p>Depending on your location, you may have the right to access, correct, or delete your personal information, withdraw consent, or opt out of marketing communications. To exercise these rights, contact us at <a href="mailto:colgatemarketplace13@gmail.com" className="text-maroon hover:underline">colgatemarketplace13@gmail.com</a>.</p>
         <p>You can update your account information or request account deletion at any time through your account settings or by contacting us directly.</p>
         <p>To unsubscribe from marketing emails, click the unsubscribe link in any email we send.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">9. Do-Not-Track Features</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">9. Do-Not-Track Features</h2>
         <p>We do not currently respond to Do-Not-Track (DNT) browser signals, as no uniform standard for recognizing DNT signals has been finalized. If such a standard is adopted, we will update this notice accordingly.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">10. US State Privacy Rights</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">10. US State Privacy Rights</h2>
         <p>Residents of certain US states (including California, Colorado, Connecticut, Virginia, and others) may have additional rights under applicable privacy laws, including the right to know, access, correct, delete, or opt out of the sale of personal data. To submit a request, email us at <a href="mailto:colgatemarketplace13@gmail.com" className="text-maroon hover:underline">colgatemarketplace13@gmail.com</a>. We will respond in accordance with applicable law.</p>
         <p>We do not sell personal information and have not done so in the preceding 12 months.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">11. Updates to This Notice</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">11. Updates to This Notice</h2>
         <p>We may update this Privacy Notice from time to time. The updated version will be indicated by a revised date at the top of this page. Material changes will be communicated via a notice on the platform or by email.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">12. Contact Us</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">12. Contact Us</h2>
         <p>If you have questions or comments about this notice, email us at <a href="mailto:colgatemarketplace13@gmail.com" className="text-maroon hover:underline">colgatemarketplace13@gmail.com</a>.</p>
       </section>
 
       <section className="space-y-2">
-        <h2 className="font-semibold text-gray-900">13. Review, Update, or Delete Your Data</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">13. Review, Update, or Delete Your Data</h2>
         <p>To request access to, correction of, or deletion of your personal information, visit <a href="/contact" className="text-maroon hover:underline">our contact page</a> or email us directly. We will handle your request in accordance with applicable data protection laws.</p>
-        <p className="text-xs text-gray-400 pt-2">Not affiliated with Colgate University.</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 pt-2">Not affiliated with Colgate University.</p>
       </section>
     </div>
   )
