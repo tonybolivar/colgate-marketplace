@@ -206,6 +206,12 @@ const privacyHTML = `
 
 `
 
+export function PrivacyContent() {
+  return (
+    <div className="privacy-content" dangerouslySetInnerHTML={{ __html: privacyHTML }} />
+  )
+}
+
 export default function PrivacyPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">

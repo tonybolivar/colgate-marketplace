@@ -19,6 +19,7 @@ import AdminPage from '@/pages/AdminPage'
 import ContactPage from '@/pages/ContactPage'
 import AboutPage from '@/pages/AboutPage'
 import PrivacyPage from '@/pages/PrivacyPage'
+import TermsPage from '@/pages/TermsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import SetupProfilePage from '@/pages/SetupProfilePage'
@@ -78,6 +79,7 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
