@@ -24,7 +24,7 @@ export default function AboutPage() {
           <div>
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Thomas Sfikas</p>
             <a
-              href="https://www.linkedin.com/in/thomas-sfikas-4014b6246"
+              href="https://www.linkedin.com/in/thomas-sfikas/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-maroon hover:underline"
