@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION _call_notification(payload jsonb)
 RETURNS void AS $$
 BEGIN
   PERFORM net.http_post(
-    url     := 'https://pxqurhzraduodjnnjrxt.supabase.co/functions/v1/send-notification',
+    url     := 'https://kajbekgezukjhsjnvszu.supabase.co/functions/v1/send-notification',
     headers := '{"Content-Type": "application/json"}'::jsonb,
     body    := payload::text
   );

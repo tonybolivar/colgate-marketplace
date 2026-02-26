@@ -51,7 +51,7 @@ async function onMessage(messageId: string) {
     .select("notification_settings")
     .eq("id", recipientId)
     .single()
-  if (!recipientProfile?.notification_settings?.message_received) return
+  if (recipientProfile?.notification_settings?.message_received === false) return
 
   const { data: { user: recipient } } = await supabase.auth.admin.getUserById(recipientId)
   if (!recipient?.email) return
@@ -95,7 +95,7 @@ async function onApproved(listingId: string) {
     .select("notification_settings")
     .eq("id", listing.seller_id)
     .single()
-  if (!sellerProfile?.notification_settings?.listing_approved) return
+  if (sellerProfile?.notification_settings?.listing_approved === false) return
 
   const { data: { user } } = await supabase.auth.admin.getUserById(listing.seller_id)
   if (!user?.email) return
@@ -164,7 +164,7 @@ async function onReview(reviewId: string) {
     .select("notification_settings")
     .eq("id", review.seller_id)
     .single()
-  if (!sellerProfile?.notification_settings?.review_received) return
+  if (sellerProfile?.notification_settings?.review_received === false) return
 
   const { data: { user } } = await supabase.auth.admin.getUserById(review.seller_id)
   if (!user?.email) return
