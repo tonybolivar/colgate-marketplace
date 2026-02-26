@@ -129,8 +129,11 @@ export default function BrowsePage() {
     if (!user) return
     offsetRef.current = 0
     isFetchingRef.current = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHasMore(true)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setListings([])
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPage(0)
   }, [user, fetchPage])
 
