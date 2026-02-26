@@ -4,11 +4,14 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import TermsContent from '@/components/TermsContent'
+import PrivacyContent from '@/components/PrivacyContent'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ fullName: '', displayName: '', email: '', password: '', confirmPassword: '' })
   const [agreed, setAgreed] = useState(false)
+  const [modal, setModal] = useState(null) // 'terms' | 'privacy' | null
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -58,6 +61,7 @@ export default function RegisterPage() {
   }
 
   return (
+    <>
     <div className="min-h-[calc(100vh-120px)] flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -147,7 +151,9 @@ export default function RegisterPage() {
                 />
                 <span className="text-sm text-gray-700">
                   I agree to the{' '}
-                  <Link to="/privacy" className="text-maroon hover:underline font-medium">Privacy Policy</Link>
+                  <button type="button" onClick={() => setModal('terms')} className="text-maroon hover:underline font-medium">Terms of Service</button>
+                  {' '}and{' '}
+                  <button type="button" onClick={() => setModal('privacy')} className="text-maroon hover:underline font-medium">Privacy Policy</button>
                   {' '}and consent to receiving marketing emails from Colgate Marketplace.
                 </span>
               </label>
@@ -168,5 +174,35 @@ export default function RegisterPage() {
         </CardContent>
       </Card>
     </div>
+
+    {/* Legal document modal */}
+    {modal && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        onClick={() => setModal(null)}
+      >
+        <div
+          className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{modal === 'terms' ? 'Terms of Service' : 'Privacy Policy'}</h2>
+            <button
+              onClick={() => setModal(null)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          <div className="overflow-y-auto px-6 py-5">
+            {modal === 'terms' ? <TermsContent /> : <PrivacyContent />}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

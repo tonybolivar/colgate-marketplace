@@ -8,6 +8,7 @@ export const CATEGORIES = [
   { value: 'rides', label: 'Rides' },
   { value: 'services', label: 'Services' },
   { value: 'free', label: 'Free' },
+  { value: 'other', label: 'Other' },
 ]
 
 export const CONDITIONS = [
