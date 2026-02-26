@@ -45,49 +45,6 @@ export default function BrowsePage() {
   const offsetRef = useRef(0)
   const isFetchingRef = useRef(false)
 
-  useEffect(() => {
-    if (user === null) navigate('/login', { replace: true })
-  }, [user, navigate])
-
-  useEffect(() => {
-    setSearch(searchParams.get('search') || '')
-  }, [searchParams.get('search')])
-
-  // Reset and reload when filters change
-  useEffect(() => {
-    if (!user) return
-    offsetRef.current = 0
-    isFetchingRef.current = false
-    setHasMore(true)
-    setListings([])
-    fetchPage(0)
-  }, [user, activeCategory, search, sortBy, minPrice, maxPrice])
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const el = sentinelRef.current
-    if (!el || !hasMore || loading) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !isFetchingRef.current) {
-          loadMore()
-        }
-      },
-      { rootMargin: '400px' }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [hasMore, loading])
-
-  async function loadMore() {
-    if (isFetchingRef.current || !hasMore) return
-    isFetchingRef.current = true
-    setLoadingMore(true)
-    await fetchPage(offsetRef.current)
-    setLoadingMore(false)
-    isFetchingRef.current = false
-  }
-
   async function fetchPage(offset) {
     if (offset === 0) setLoading(true)
 
@@ -152,6 +109,49 @@ export default function BrowsePage() {
 
     if (offset === 0) setLoading(false)
   }
+
+  async function loadMore() {
+    if (isFetchingRef.current || !hasMore) return
+    isFetchingRef.current = true
+    setLoadingMore(true)
+    await fetchPage(offsetRef.current)
+    setLoadingMore(false)
+    isFetchingRef.current = false
+  }
+
+  useEffect(() => {
+    if (user === null) navigate('/login', { replace: true })
+  }, [user, navigate])
+
+  useEffect(() => {
+    setSearch(searchParams.get('search') || '')
+  }, [searchParams.get('search')])
+
+  // Reset and reload when filters change
+  useEffect(() => {
+    if (!user) return
+    offsetRef.current = 0
+    isFetchingRef.current = false
+    setHasMore(true)
+    setListings([])
+    fetchPage(0)
+  }, [user, activeCategory, search, sortBy, minPrice, maxPrice])
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !hasMore || loading) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isFetchingRef.current) {
+          loadMore()
+        }
+      },
+      { rootMargin: '400px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasMore, loading])
 
   function setCategory(cat) {
     if (cat === 'all') setSearchParams({})
