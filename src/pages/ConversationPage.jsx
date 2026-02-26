@@ -150,26 +150,33 @@ export default function ConversationPage() {
 
   async function handleSend(e) {
     e.preventDefault()
-    if (!text.trim()) return
+    const content = text.trim()
+    if (!content) return
+    setText('') // clear immediately for snappy feel
     setSending(true)
-    const { error } = await supabase.from('messages').insert({
+    const { data, error } = await supabase.from('messages').insert({
       conversation_id: conversationId,
       sender_id: user.id,
-      content: text.trim(),
+      content,
       type: 'text',
-    })
-    if (!error) setText('')
+    }).select().single()
+    if (error) {
+      setText(content) // restore on failure
+    } else if (data) {
+      setMessages(prev => prev.some(m => m.id === data.id) ? prev : [...prev, data])
+    }
     setSending(false)
   }
 
   async function handleConfirmOffer() {
     setProcessingAction(true)
-    await supabase.from('messages').insert({
+    const { data } = await supabase.from('messages').insert({
       conversation_id: conversationId,
       sender_id: user.id,
       content: 'offered to confirm this purchase',
       type: 'sale_offer',
-    })
+    }).select().single()
+    if (data) setMessages(prev => prev.some(m => m.id === data.id) ? prev : [...prev, data])
     setOfferModalOpen(false)
     setProcessingAction(false)
   }
@@ -201,12 +208,13 @@ export default function ConversationPage() {
       }))
     }
 
-    await supabase.from('messages').insert({
+    const { data: confirmMsg } = await supabase.from('messages').insert({
       conversation_id: conversationId,
       sender_id: user.id,
       content: 'confirmed the sale',
       type: 'sale_confirmed',
-    })
+    }).select().single()
+    if (confirmMsg) setMessages(prev => prev.some(m => m.id === confirmMsg.id) ? prev : [...prev, confirmMsg])
 
     setConfirmModalOpen(false)
     setProcessingAction(false)
