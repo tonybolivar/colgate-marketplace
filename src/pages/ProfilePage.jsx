@@ -181,6 +181,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user || !userId) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAll()
   }, [user, userId, fetchAll])
 
