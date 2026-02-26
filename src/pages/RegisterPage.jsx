@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '' })
+  const [form, setForm] = useState({ fullName: '', displayName: '', email: '', password: '', confirmPassword: '' })
   const [agreed, setAgreed] = useState(false)
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
@@ -16,6 +16,7 @@ export default function RegisterPage() {
   function validate() {
     const e = {}
     if (!form.fullName.trim()) e.fullName = 'Full name is required.'
+    if (!form.displayName.trim()) e.displayName = 'Display name is required.'
     if (!form.email.endsWith('@colgate.edu')) e.email = 'Must be a @colgate.edu email address.'
     if (form.password.length < 8) e.password = 'Password must be at least 8 characters.'
     if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match.'
@@ -40,7 +41,7 @@ export default function RegisterPage() {
       email: form.email,
       password: form.password,
       options: {
-        data: { full_name: form.fullName.trim() },
+        data: { full_name: form.fullName.trim(), display_name: form.displayName.trim() },
       },
     })
 
@@ -75,7 +76,22 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 autoComplete="name"
               />
+              <p className="text-xs text-muted-foreground">Used for verification only — cannot be changed later.</p>
               {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium" htmlFor="displayName">Display name</label>
+              <Input
+                id="displayName"
+                name="displayName"
+                placeholder="Jane"
+                value={form.displayName}
+                onChange={handleChange}
+                autoComplete="nickname"
+              />
+              <p className="text-xs text-muted-foreground">Shown publicly on your listings and profile.</p>
+              {errors.displayName && <p className="text-xs text-destructive">{errors.displayName}</p>}
             </div>
 
             <div className="space-y-1">
@@ -89,6 +105,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 autoComplete="email"
               />
+              <p className="text-xs text-muted-foreground">Must be a @colgate.edu address — cannot be changed later.</p>
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 

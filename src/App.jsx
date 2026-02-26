@@ -21,6 +21,7 @@ import AboutPage from '@/pages/AboutPage'
 import PrivacyPage from '@/pages/PrivacyPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
+import SetupProfilePage from '@/pages/SetupProfilePage'
 import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import { Toaster } from '@/components/ui/sonner'
 
@@ -63,6 +64,7 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/setup-profile" element={<SetupProfilePage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/listings/new" element={<CreateListingPage />} />

@@ -58,10 +58,10 @@ export default function VerifyEmailPage() {
           </CardHeader>
           <CardContent>
             <Button
-              onClick={() => navigate('/account')}
+              onClick={() => navigate('/setup-profile')}
               className="w-full bg-maroon hover:bg-maroon-light text-white"
             >
-              Go to your account
+              Continue
             </Button>
           </CardContent>
         </Card>

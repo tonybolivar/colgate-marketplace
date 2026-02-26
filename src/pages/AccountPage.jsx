@@ -55,7 +55,7 @@ export default function AccountPage() {
   const { theme, setTheme } = useTheme()
 
   // Profile
-  const [profile, setProfile] = useState({ full_name: '', account_type: 'student', class_year: '' })
+  const [profile, setProfile] = useState({ display_name: '', account_type: 'student', class_year: '' })
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMsg, setProfileMsg] = useState({ type: '', text: '' })
 
@@ -75,7 +75,7 @@ export default function AccountPage() {
   useEffect(() => {
     if (!user) return
     setProfile({
-      full_name: user.user_metadata?.full_name || '',
+      display_name: user.user_metadata?.display_name || '',
       account_type: user.user_metadata?.account_type || 'student',
       class_year: user.user_metadata?.class_year || '',
     })
@@ -94,14 +94,14 @@ export default function AccountPage() {
     e.preventDefault()
     setProfileSaving(true)
     setProfileMsg({ type: '', text: '' })
-    const data = { full_name: profile.full_name, account_type: profile.account_type }
+    const data = { display_name: profile.display_name, account_type: profile.account_type }
     if (profile.account_type === 'student') data.class_year = profile.class_year
     else data.class_year = null
     const { error } = await supabase.auth.updateUser({ data })
     if (!error) {
       await supabase.from('profiles').upsert({
         id: user.id,
-        full_name: data.full_name,
+        display_name: data.display_name,
         account_type: data.account_type,
         class_year: data.class_year ? parseInt(data.class_year) : null,
       })
@@ -166,11 +166,15 @@ export default function AccountPage() {
         <CardContent>
           <form onSubmit={handleProfileSave} className="space-y-4">
             <div className="space-y-1">
+              <label className="text-sm font-medium">Full name</label>
+              <Input value={user.user_metadata?.full_name || ''} disabled className="opacity-60 cursor-not-allowed" />
+            </div>
+            <div className="space-y-1">
               <label className="text-sm font-medium">Display name</label>
               <Input
-                value={profile.full_name}
-                onChange={e => setProfile(p => ({ ...p, full_name: e.target.value }))}
-                placeholder="Your name"
+                value={profile.display_name}
+                onChange={e => setProfile(p => ({ ...p, display_name: e.target.value }))}
+                placeholder="Your display name"
               />
             </div>
             <div className="space-y-1">
