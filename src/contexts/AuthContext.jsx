@@ -9,11 +9,22 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && !session.user.email_confirmed_at) {
+        supabase.auth.signOut()
+        setUser(null)
+        return
+      }
       setUser(session?.user ?? null)
       if (session?.user) fetchIsAdmin(session.user.id)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user && !session.user.email_confirmed_at) {
+        supabase.auth.signOut()
+        setUser(null)
+        setIsAdmin(false)
+        return
+      }
       setUser(session?.user ?? null)
       if (session?.user) fetchIsAdmin(session.user.id)
       else setIsAdmin(false)
