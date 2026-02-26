@@ -114,7 +114,7 @@ export default function ProfilePage() {
     setLoading(true)
 
     const [profileRes, listingsRes, reviewsRes] = await Promise.all([
-      supabase.from('profiles').select('display_name, display_name_history, account_type, created_at, status').eq('id', userId).single(),
+      supabase.from('profiles').select('display_name, full_name, display_name_history, account_type, created_at, status').eq('id', userId).single(),
       supabase.from('listings').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
       supabase.from('reviews').select('*').eq('seller_id', userId).order('created_at', { ascending: false }),
     ])
@@ -137,9 +137,9 @@ export default function ProfilePage() {
       const reviewerIds = [...new Set(rawReviews.map(r => r.reviewer_id))]
       const { data: reviewerProfiles } = await supabase
         .from('profiles')
-        .select('id, display_name')
+        .select('id, display_name, full_name')
         .in('id', reviewerIds)
-      const nameMap = Object.fromEntries((reviewerProfiles || []).map(p => [p.id, p.display_name]))
+      const nameMap = Object.fromEntries((reviewerProfiles || []).map(p => [p.id, p.display_name || p.full_name]))
 
       // Fetch listing titles for reviews
       const listingIds = [...new Set(rawReviews.map(r => r.listing_id))]
@@ -260,7 +260,7 @@ export default function ProfilePage() {
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : null
 
-  const displayName = profile.display_name || 'Unknown'
+  const displayName = profile.display_name || profile.full_name || 'Unknown'
   const initial = displayName.charAt(0).toUpperCase()
   const pastNames = (profile.display_name_history || []).filter(n => n !== displayName)
   const memberSince = profile.created_at

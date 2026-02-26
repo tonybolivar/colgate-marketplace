@@ -79,7 +79,7 @@ export default function MessagesPage() {
       let profileMap = {}
       if (allIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles').select('id, full_name').in('id', allIds)
+          .from('profiles').select('id, display_name, full_name').in('id', allIds)
         profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
       }
 
@@ -113,8 +113,8 @@ export default function MessagesPage() {
           {conversations.map(conv => {
             const isBuyer = conv.buyer_id === user.id
             const otherName = isBuyer
-              ? conv.seller?.full_name || 'Unknown'
-              : conv.buyer?.full_name || 'Unknown'
+              ? conv.seller?.display_name || conv.seller?.full_name || 'Unknown'
+              : conv.buyer?.display_name || conv.buyer?.full_name || 'Unknown'
             const listing = conv.listings
 
             return (

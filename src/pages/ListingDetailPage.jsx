@@ -66,7 +66,7 @@ export default function ListingDetailPage() {
     }
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, account_type')
+      .select('display_name, full_name, account_type')
       .eq('id', data.seller_id)
       .single()
     setListing({ ...data, profiles: profile || null })
@@ -253,7 +253,7 @@ export default function ListingDetailPage() {
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Seller</p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               <Link to={`/profile/${listing.seller_id}`} className="underline hover:text-maroon">
-                {listing.profiles?.full_name || 'Unknown'}
+                {listing.profiles?.display_name || listing.profiles?.full_name || 'Unknown'}
               </Link>
               {listing.profiles?.account_type && (
                 <span className="ml-2 text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full capitalize">

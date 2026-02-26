@@ -105,7 +105,7 @@ export default function BrowsePage() {
       let profileMap = {}
       if (sellerIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles').select('id, full_name').in('id', sellerIds)
+          .from('profiles').select('id, display_name, full_name').in('id', sellerIds)
         profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
       }
 
@@ -244,7 +244,7 @@ export default function BrowsePage() {
                   </span>
                 </div>
                 <p className="text-xs text-shadow-gray dark:text-gray-400">
-                  {listing.profiles?.full_name || 'Unknown'} · {timeAgo(listing.created_at)}
+                  {listing.profiles?.display_name || listing.profiles?.full_name || 'Unknown'} · {timeAgo(listing.created_at)}
                 </p>
               </div>
             </Link>

@@ -120,11 +120,11 @@ export default function ConversationPage() {
     const otherId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id
     const { data: otherProfile } = await supabase
       .from('profiles')
-      .select('full_name')
+      .select('display_name, full_name')
       .eq('id', otherId)
       .single()
 
-    setConversation({ ...conv, otherName: otherProfile?.full_name || 'Unknown' })
+    setConversation({ ...conv, otherName: otherProfile?.display_name || otherProfile?.full_name || 'Unknown' })
 
     // If buyer, check if they already reviewed this listing
     const listing = conv.listings
