@@ -42,6 +42,8 @@ function Modal({ open, onClose, children }) {
   )
 }
 
+const CONV_REPORT_REASONS = ['Harassment', 'Scam or fraud', 'Inappropriate content', 'Other']
+
 export default function ConversationPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -66,6 +68,14 @@ export default function ConversationPage() {
   const [reviewComment, setReviewComment] = useState('')
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
   const [reviewError, setReviewError] = useState('')
+
+  // Report conversation state
+  const [alreadyReported, setAlreadyReported] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportDetails, setReportDetails] = useState('')
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [reportDone, setReportDone] = useState(false)
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
@@ -137,6 +147,15 @@ export default function ConversationPage() {
         .maybeSingle()
       setHasReviewed(!!existing)
     }
+
+    // Check if already reported this conversation
+    const { data: existingReport } = await supabase
+      .from('conversation_reports')
+      .select('id')
+      .eq('reporter_id', user.id)
+      .eq('conversation_id', conversationId)
+      .maybeSingle()
+    setAlreadyReported(!!existingReport)
 
     const { data: msgs } = await supabase
       .from('messages')
@@ -220,6 +239,22 @@ export default function ConversationPage() {
     setProcessingAction(false)
   }
 
+  async function handleSubmitReport(e) {
+    e.preventDefault()
+    if (!reportReason) return
+    setReportSubmitting(true)
+    await supabase.from('conversation_reports').insert({
+      reporter_id: user.id,
+      conversation_id: conversationId,
+      reason: reportReason,
+      details: reportDetails.trim() || null,
+    })
+    setReportSubmitting(false)
+    setReportDone(true)
+    setReportOpen(false)
+    setAlreadyReported(true)
+  }
+
   async function handleSubmitReview(e) {
     e.preventDefault()
     if (!reviewRating) { setReviewError('Please select a rating.'); return }
@@ -267,15 +302,64 @@ export default function ConversationPage() {
     <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-120px)]">
       {/* Header */}
       <div className="mb-4">
-        <Link to="/messages" className="text-sm text-shadow-gray dark:text-gray-400 hover:text-maroon">← Messages</Link>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">{conversation.otherName}</h1>
-        {listing?.title && (
-          <Link
-            to={`/listings/${listing.id}`}
-            className="text-sm text-maroon hover:underline"
-          >
-            Re: {listing.title}
-          </Link>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <Link to="/messages" className="text-sm text-shadow-gray dark:text-gray-400 hover:text-maroon">← Messages</Link>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1">{conversation.otherName}</h1>
+            {listing?.title && (
+              <Link
+                to={`/listings/${listing.id}`}
+                className="text-sm text-maroon hover:underline"
+              >
+                Re: {listing.title}
+              </Link>
+            )}
+          </div>
+          <div className="flex-shrink-0 pt-1">
+            {reportDone || alreadyReported ? (
+              <p className="text-xs text-gray-400 dark:text-gray-500">Reported</p>
+            ) : (
+              <button
+                onClick={() => setReportOpen(o => !o)}
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 underline"
+              >
+                Report
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Report form */}
+        {reportOpen && (
+          <form onSubmit={handleSubmitReport} className="mt-3 border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2 bg-gray-50 dark:bg-gray-800/50">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Report this conversation</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Admins will be able to read the messages in this conversation.</p>
+            <select
+              value={reportReason}
+              onChange={e => setReportReason(e.target.value)}
+              required
+              className="w-full h-9 rounded-md border border-input bg-white dark:bg-gray-800 px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:text-gray-100 dark:border-gray-700"
+            >
+              <option value="">Select a reason…</option>
+              {CONV_REPORT_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <textarea
+              value={reportDetails}
+              onChange={e => setReportDetails(e.target.value)}
+              rows={2}
+              maxLength={500}
+              placeholder="Additional details (optional)"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon resize-none bg-white dark:bg-gray-900 dark:text-gray-100"
+            />
+            <div className="flex gap-2">
+              <Button type="submit" disabled={reportSubmitting || !reportReason} className="bg-maroon hover:bg-maroon-light text-white text-xs h-8 px-3">
+                {reportSubmitting ? 'Submitting…' : 'Submit'}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setReportOpen(false)} className="text-xs h-8 px-3">
+                Cancel
+              </Button>
+            </div>
+          </form>
         )}
       </div>
 

@@ -4,6 +4,10 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { CATEGORIES, CONDITIONS } from '@/lib/categories'
 import { Button } from '@/components/ui/button'
+import { Share2, Bookmark, BookmarkCheck } from 'lucide-react'
+import { toast } from 'sonner'
+
+const RECENTLY_VIEWED_KEY = 'colgate_recently_viewed'
 
 function StarDisplay({ rating, count }) {
   return (
@@ -30,6 +34,33 @@ function timeAgo(dateStr) {
   return `${days}d ago`
 }
 
+function saveRecentlyViewed(listing) {
+  try {
+    const entry = {
+      id: listing.id,
+      title: listing.title,
+      price: listing.price,
+      images: listing.images,
+      category: listing.category,
+      condition: listing.condition,
+    }
+    const existing = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]')
+    const filtered = existing.filter(e => e.id !== entry.id)
+    const updated = [entry, ...filtered].slice(0, 10)
+    localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(updated))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+const REPORT_REASONS = [
+  'Prohibited item',
+  'Spam or duplicate',
+  'Misleading description',
+  'Wrong category',
+  'Other',
+]
+
 export default function ListingDetailPage() {
   const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
@@ -42,8 +73,20 @@ export default function ListingDetailPage() {
   const [error, setError] = useState('')
 
   const [confirmTakeDown, setConfirmTakeDown] = useState(false)
-  const [listingRating, setListingRating] = useState(null) // { avg, count } for services
-  const [sellerResponseRate, setSellerResponseRate] = useState(null) // { rate, total }
+  const [listingRating, setListingRating] = useState(null)
+  const [sellerResponseRate, setSellerResponseRate] = useState(null)
+
+  // Save/bookmark state
+  const [isSaved, setIsSaved] = useState(false)
+  const [saveLoading, setSaveLoading] = useState(false)
+
+  // Report state
+  const [alreadyReported, setAlreadyReported] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportDetails, setReportDetails] = useState('')
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [reportDone, setReportDone] = useState(false)
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
@@ -72,6 +115,11 @@ export default function ListingDetailPage() {
       .single()
     setListing({ ...data, profiles: profile || null })
 
+    // Recently viewed — skip archived/sold
+    if (data.status === 'active') {
+      saveRecentlyViewed(data)
+    }
+
     if (data.category === 'services') {
       const { data: revs } = await supabase
         .from('reviews')
@@ -99,7 +147,76 @@ export default function ListingDetailPage() {
       setSellerResponseRate({ rate: Math.round((respondedCount / convs.length) * 100), total: convs.length })
     }
 
+    // Fetch save status (non-seller, logged-in users)
+    if (user && user.id !== data.seller_id) {
+      const { data: saved } = await supabase
+        .from('saved_listings')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('listing_id', data.id)
+        .maybeSingle()
+      setIsSaved(!!saved)
+
+      // Check if already reported
+      const { data: report } = await supabase
+        .from('listing_reports')
+        .select('id')
+        .eq('reporter_id', user.id)
+        .eq('listing_id', data.id)
+        .maybeSingle()
+      setAlreadyReported(!!report)
+    }
+
     setLoading(false)
+  }
+
+  async function handleShare() {
+    const url = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: listing?.title, url })
+      } catch {
+        // user cancelled — no-op
+      }
+    } else {
+      await navigator.clipboard.writeText(url)
+      toast('Link copied!')
+    }
+  }
+
+  async function handleToggleSave() {
+    if (!user || saveLoading) return
+    setSaveLoading(true)
+    if (isSaved) {
+      await supabase
+        .from('saved_listings')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('listing_id', id)
+      setIsSaved(false)
+    } else {
+      await supabase
+        .from('saved_listings')
+        .insert({ user_id: user.id, listing_id: id })
+      setIsSaved(true)
+    }
+    setSaveLoading(false)
+  }
+
+  async function handleSubmitReport(e) {
+    e.preventDefault()
+    if (!reportReason) return
+    setReportSubmitting(true)
+    await supabase.from('listing_reports').insert({
+      reporter_id: user.id,
+      listing_id: id,
+      reason: reportReason,
+      details: reportDetails.trim() || null,
+    })
+    setReportSubmitting(false)
+    setReportDone(true)
+    setReportOpen(false)
+    setAlreadyReported(true)
   }
 
   async function handleTakeDown() {
@@ -123,7 +240,6 @@ export default function ListingDetailPage() {
     setActionLoading(true)
     setError('')
 
-    // Check if conversation already exists first (upsert triggers RLS USING check)
     const { data: existing } = await supabase
       .from('conversations')
       .select('id')
@@ -167,6 +283,7 @@ export default function ListingDetailPage() {
 
   const isSeller = user.id === listing.seller_id
   const isAdminViewing = isAdmin && !isSeller
+  const isBuyer = !isSeller && !isAdmin
   const categoryLabel = CATEGORIES.find(c => c.value === listing.category)?.label || listing.category
   const conditionLabel = CONDITIONS.find(c => c.value === listing.condition)?.label
 
@@ -290,6 +407,11 @@ export default function ListingDetailPage() {
 
           {isSeller ? (
             <div className="space-y-2">
+              {/* Share button — visible to everyone */}
+              <Button onClick={handleShare} variant="outline" className="w-full flex items-center gap-2">
+                <Share2 className="w-4 h-4" />
+                Share
+              </Button>
               <Button
                 onClick={() => navigate(`/listings/${id}/edit`)}
                 variant="outline"
@@ -319,6 +441,25 @@ export default function ListingDetailPage() {
             </div>
           ) : (
             <div className="space-y-2">
+              {/* Share + Save row */}
+              <div className="flex gap-2">
+                <Button onClick={handleShare} variant="outline" className="flex-1 flex items-center gap-2">
+                  <Share2 className="w-4 h-4" />
+                  Share
+                </Button>
+                <Button
+                  onClick={handleToggleSave}
+                  variant="outline"
+                  disabled={saveLoading}
+                  className="flex-1 flex items-center gap-2"
+                >
+                  {isSaved
+                    ? <><BookmarkCheck className="w-4 h-4 text-maroon" /> Saved</>
+                    : <><Bookmark className="w-4 h-4" /> Save</>
+                  }
+                </Button>
+              </div>
+
               {listing.status === 'active' && (
                 <Button
                   onClick={handleMessage}
@@ -328,6 +469,7 @@ export default function ListingDetailPage() {
                   {actionLoading ? 'Opening chat…' : 'Message Seller'}
                 </Button>
               )}
+
               {isAdminViewing && (
                 <div className="space-y-2 pt-1 border-t border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-center text-amber-600 font-medium bg-amber-50 dark:bg-amber-950/30 rounded-lg py-1">Admin controls</p>
@@ -364,6 +506,51 @@ export default function ListingDetailPage() {
                     >
                       Reopen Listing
                     </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Report listing (non-seller, non-admin, logged in) */}
+              {isBuyer && (
+                <div className="pt-2">
+                  {reportDone || alreadyReported ? (
+                    <p className="text-xs text-center text-gray-400 dark:text-gray-500">You've reported this listing</p>
+                  ) : reportOpen ? (
+                    <form onSubmit={handleSubmitReport} className="space-y-2 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Report this listing</p>
+                      <select
+                        value={reportReason}
+                        onChange={e => setReportReason(e.target.value)}
+                        required
+                        className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
+                      >
+                        <option value="">Select a reason…</option>
+                        {REPORT_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                      <textarea
+                        value={reportDetails}
+                        onChange={e => setReportDetails(e.target.value)}
+                        rows={2}
+                        maxLength={500}
+                        placeholder="Additional details (optional)"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-maroon resize-none bg-white dark:bg-gray-900 dark:text-gray-100"
+                      />
+                      <div className="flex gap-2">
+                        <Button type="submit" disabled={reportSubmitting || !reportReason} className="bg-maroon hover:bg-maroon-light text-white text-xs h-8 px-3">
+                          {reportSubmitting ? 'Submitting…' : 'Submit'}
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setReportOpen(false)} className="text-xs h-8 px-3">
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <button
+                      onClick={() => setReportOpen(true)}
+                      className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 underline w-full text-center"
+                    >
+                      Report listing
+                    </button>
                   )}
                 </div>
               )}

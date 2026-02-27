@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { CATEGORIES } from '@/lib/categories'
 import { Input } from '@/components/ui/input'
+import { Bookmark, BookmarkCheck } from 'lucide-react'
 
 const PAGE_SIZE = 16
 
@@ -40,6 +41,9 @@ export default function BrowsePage() {
   const [maxPrice, setMaxPrice] = useState('')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const activeCategory = searchParams.get('category') || 'all'
+
+  // Saved listing IDs set for quick lookup
+  const [savedIds, setSavedIds] = useState(new Set())
 
   const sentinelRef = useRef(null)
   const offsetRef = useRef(0)
@@ -128,6 +132,18 @@ export default function BrowsePage() {
     if (user === null) navigate('/login', { replace: true })
   }, [user, navigate])
 
+  // Load saved IDs once on mount
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('saved_listings')
+      .select('listing_id')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        if (data) setSavedIds(new Set(data.map(s => s.listing_id)))
+      })
+  }, [user])
+
   // Reset and reload when filters change
   useEffect(() => {
     if (!user) return
@@ -155,6 +171,30 @@ export default function BrowsePage() {
   function setCategory(cat) {
     if (cat === 'all') setSearchParams({})
     else setSearchParams({ category: cat })
+  }
+
+  async function handleToggleSave(e, listingId) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!user) return
+    // Optimistic update
+    setSavedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(listingId)) next.delete(listingId)
+      else next.add(listingId)
+      return next
+    })
+    if (savedIds.has(listingId)) {
+      await supabase
+        .from('saved_listings')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('listing_id', listingId)
+    } else {
+      await supabase
+        .from('saved_listings')
+        .insert({ user_id: user.id, listing_id: listingId })
+    }
   }
 
   if (!user) return null
@@ -284,7 +324,7 @@ export default function BrowsePage() {
               to={`/listings/${listing.id}`}
               className="group border border-winter-gray dark:border-gray-700 rounded-xl overflow-hidden hover:border-maroon hover:shadow-md transition-all"
             >
-              <div className="aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
+              <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
                 {listing.images && listing.images.length > 0 ? (
                   <img
                     src={listing.images[0]}
@@ -296,6 +336,17 @@ export default function BrowsePage() {
                     No photo
                   </div>
                 )}
+                {/* Bookmark button */}
+                <button
+                  onClick={(e) => handleToggleSave(e, listing.id)}
+                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-900/90 flex items-center justify-center shadow hover:scale-110 transition-transform"
+                  aria-label={savedIds.has(listing.id) ? 'Unsave listing' : 'Save listing'}
+                >
+                  {savedIds.has(listing.id)
+                    ? <BookmarkCheck className="w-4 h-4 text-maroon" />
+                    : <Bookmark className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  }
+                </button>
               </div>
 
               <div className="p-3 space-y-1">

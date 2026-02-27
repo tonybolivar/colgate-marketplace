@@ -6,6 +6,8 @@ import { useTheme } from '@/hooks/useTheme'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CATEGORIES } from '@/lib/categories'
+import { X } from 'lucide-react'
 
 const CURRENT_YEAR = new Date().getFullYear()
 const CLASS_YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR + i)
@@ -47,6 +49,15 @@ const DEFAULT_NOTIF = {
   listing_approved: true,
   new_listing: false,
   review_received: true,
+  listing_expiring: true,
+}
+
+const conditionColors = {
+  new: 'bg-green-100 text-green-800',
+  like_new: 'bg-blue-100 text-blue-800',
+  good: 'bg-yellow-100 text-yellow-800',
+  fair: 'bg-orange-100 text-orange-800',
+  poor: 'bg-red-100 text-red-800',
 }
 
 export default function AccountPage() {
@@ -68,6 +79,10 @@ export default function AccountPage() {
   const [notif, setNotif] = useState(DEFAULT_NOTIF)
   const [notifSaving, setNotifSaving] = useState(false)
 
+  // Saved listings
+  const [savedListings, setSavedListings] = useState([])
+  const [savedLoading, setSavedLoading] = useState(true)
+
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
   }, [user, navigate])
@@ -85,10 +100,37 @@ export default function AccountPage() {
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data?.notification_settings) setNotif(s => ({ ...s, ...data.notification_settings }))
+        if (data?.notification_settings) setNotif(s => ({ ...DEFAULT_NOTIF, ...data.notification_settings }))
         if (data?.theme_preference) setTheme(data.theme_preference)
       })
+
+    // Load saved listings
+    fetchSavedListings()
   }, [user])
+
+  async function fetchSavedListings() {
+    setSavedLoading(true)
+    const { data } = await supabase
+      .from('saved_listings')
+      .select('listing_id, listings(id, title, price, images, category, condition, status)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    setSavedListings(
+      (data || [])
+        .filter(s => s.listings)
+        .map(s => s.listings)
+    )
+    setSavedLoading(false)
+  }
+
+  async function handleUnsave(listingId) {
+    setSavedListings(prev => prev.filter(l => l.id !== listingId))
+    await supabase
+      .from('saved_listings')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('listing_id', listingId)
+  }
 
   async function handleProfileSave(e) {
     e.preventDefault()
@@ -228,6 +270,60 @@ export default function AccountPage() {
         </CardContent>
       </Card>
 
+      {/* Saved Listings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Saved Listings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {savedLoading ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500">Loading…</p>
+          ) : savedListings.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500">No saved listings yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {savedListings.map(listing => (
+                <div key={listing.id} className="relative group border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                  <Link to={`/listings/${listing.id}`} className="block">
+                    <div className="aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                      {listing.images && listing.images.length > 0 ? (
+                        <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">No photo</div>
+                      )}
+                    </div>
+                    <div className="p-2 space-y-0.5">
+                      <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">{listing.title}</p>
+                      <p className="text-xs text-maroon font-bold">
+                        {listing.price != null ? `$${parseFloat(listing.price).toFixed(2)}` : 'Negotiable'}
+                      </p>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {listing.condition && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${conditionColors[listing.condition] || 'bg-gray-100 text-gray-700'}`}>
+                            {listing.condition.replace('_', ' ')}
+                          </span>
+                        )}
+                        {listing.status === 'sold' && (
+                          <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-medium">Sold</span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                  {/* Unsave button */}
+                  <button
+                    onClick={() => handleUnsave(listing.id)}
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white/90 dark:bg-gray-900/90 flex items-center justify-center shadow hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                    aria-label="Remove from saved"
+                  >
+                    <X className="w-3 h-3 text-gray-500 hover:text-red-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Settings */}
       <Card>
         <CardHeader>
@@ -294,6 +390,13 @@ export default function AccountPage() {
                 description="Email when someone leaves you a review"
                 checked={notif.review_received}
                 onChange={() => toggleNotif('review_received')}
+                disabled={notifSaving}
+              />
+              <SettingRow
+                label="Listing expiry reminder"
+                description="Remind me 3 days before a listing is auto-archived"
+                checked={notif.listing_expiring ?? true}
+                onChange={() => toggleNotif('listing_expiring')}
                 disabled={notifSaving}
               />
             </div>
