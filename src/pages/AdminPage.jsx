@@ -5,6 +5,14 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { CATEGORIES } from '@/lib/categories'
 
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    + ' · '
+    + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
 export default function AdminPage() {
   const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
@@ -242,7 +250,7 @@ export default function AdminPage() {
                       )}
                     </div>
                     <p className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                      {new Date(listing.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {formatDate(listing.created_at)}
                     </p>
                   </div>
 
@@ -351,7 +359,7 @@ export default function AdminPage() {
                           <span className="font-medium text-gray-700 dark:text-gray-300">{r.reason}</span>
                           {r.details && <span className="text-gray-500 dark:text-gray-400"> — {r.details}</span>}
                           <span className="text-gray-400 dark:text-gray-500 ml-2">
-                            {new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {formatDate(r.created_at)}
                           </span>
                         </div>
                       ))}
@@ -404,7 +412,7 @@ export default function AdminPage() {
                         </p>
                       </div>
                       <p className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                        {new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {formatDate(r.created_at)}
                       </p>
                     </div>
 
