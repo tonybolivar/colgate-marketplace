@@ -44,6 +44,16 @@ function Modal({ open, onClose, children }) {
 
 const CONV_REPORT_REASONS = ['Harassment', 'Scam or fraud', 'Inappropriate content', 'Other']
 
+function formatMsgTime(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  const now = new Date()
+  const isToday = d.toDateString() === now.toDateString()
+  const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  if (isToday) return timeStr
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + timeStr
+}
+
 export default function ConversationPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -410,20 +420,18 @@ export default function ConversationPage() {
                       Confirm Sale →
                     </button>
                   )}
+                  <p className="text-xs text-blue-400 mt-1">{formatMsgTime(msg.created_at)}</p>
                 </div>
               </div>
             )
           }
 
           if (msg.type === 'sale_confirmed') {
-            const date = new Date(msg.created_at).toLocaleDateString('en-US', {
-              month: 'short', day: 'numeric', year: 'numeric',
-            })
             return (
               <div key={msg.id} className="flex justify-center">
                 <div className="border border-green-200 bg-green-50 rounded-xl p-4 max-w-sm w-full text-center">
                   <p className="text-sm text-green-800 font-semibold">✓ Sale confirmed</p>
-                  <p className="text-xs text-green-600 mt-0.5">{date}</p>
+                  <p className="text-xs text-green-600 mt-0.5">{formatMsgTime(msg.created_at)}</p>
                 </div>
               </div>
             )
@@ -431,7 +439,7 @@ export default function ConversationPage() {
 
           const isMe = msg.sender_id === user.id
           return (
-            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+            <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
               <div
                 className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
                   isMe
@@ -441,6 +449,7 @@ export default function ConversationPage() {
               >
                 {msg.content}
               </div>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 px-1">{formatMsgTime(msg.created_at)}</p>
             </div>
           )
         })}
