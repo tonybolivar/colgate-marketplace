@@ -23,10 +23,10 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
           <Link to="/browse" className="hover:text-winter-gray transition-colors">Browse</Link>
           {user && (
-            <Link to="/messages" className="relative hover:text-winter-gray transition-colors">
+            <Link to="/messages" className="relative hover:text-winter-gray transition-colors pr-1">
               Messages
               {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-3 bg-white text-maroon text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none">
+                <span className="absolute -top-2.5 -right-0.5 bg-white text-maroon text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 leading-none shadow">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
