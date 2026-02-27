@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { isUnread } from '@/hooks/useUnreadCount'
 
 const PAGE_SIZE = 20
 
@@ -28,6 +29,8 @@ export default function MessagesPage() {
   const sentinelRef = useRef(null)
   const offsetRef = useRef(0)
   const isFetchingRef = useRef(false)
+  // Track profile map across pages for realtime updates
+  const profileMapRef = useRef({})
 
   useEffect(() => {
     if (user === null) navigate('/login', { replace: true })
@@ -36,6 +39,31 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!user) return
     fetchPage(0)
+  }, [user])
+
+  // Realtime: reorder conversations when a new message arrives
+  useEffect(() => {
+    if (!user) return
+    const channel = supabase
+      .channel('messages-inbox')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'conversations' },
+        payload => {
+          const updated = payload.new
+          setConversations(prev => {
+            const exists = prev.find(c => c.id === updated.id)
+            if (!exists) return prev
+            // Merge updated fields, keep enriched profile data
+            const merged = { ...exists, ...updated }
+            // Move to top, re-sort
+            const others = prev.filter(c => c.id !== updated.id)
+            return [merged, ...others]
+          })
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
   }, [user])
 
   // Infinite scroll observer
@@ -68,7 +96,9 @@ export default function MessagesPage() {
 
     const { data, error } = await supabase
       .from('conversations')
-      .select(`id, created_at, last_message_at, last_message_content, listing_id, buyer_id, seller_id,
+      .select(`id, created_at, last_message_at, last_message_content, last_message_sender_id,
+               buyer_last_read_at, seller_last_read_at,
+               listing_id, buyer_id, seller_id,
                listings(id, title, price, images, status)`)
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .order('last_message_at', { ascending: false, nullsFirst: false })
@@ -82,11 +112,12 @@ export default function MessagesPage() {
           .from('profiles').select('id, display_name, full_name').in('id', allIds)
         profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]))
       }
+      profileMapRef.current = { ...profileMapRef.current, ...profileMap }
 
       const enriched = data.map(c => ({
         ...c,
-        buyer: profileMap[c.buyer_id] || null,
-        seller: profileMap[c.seller_id] || null,
+        buyer: profileMapRef.current[c.buyer_id] || null,
+        seller: profileMapRef.current[c.seller_id] || null,
       }))
 
       offsetRef.current = offset + data.length
@@ -116,24 +147,36 @@ export default function MessagesPage() {
               ? conv.seller?.display_name || conv.seller?.full_name || 'Unknown'
               : conv.buyer?.display_name || conv.buyer?.full_name || 'Unknown'
             const listing = conv.listings
+            const unread = isUnread(conv, user.id)
 
             return (
               <Link
                 key={conv.id}
                 to={`/messages/${conv.id}`}
-                className="block border border-winter-gray dark:border-gray-700 rounded-xl p-4 hover:border-maroon hover:shadow-sm transition-all"
+                className={`block border rounded-xl p-4 hover:border-maroon hover:shadow-sm transition-all ${
+                  unread
+                    ? 'border-maroon/40 bg-maroon/5 dark:bg-maroon/10'
+                    : 'border-winter-gray dark:border-gray-700'
+                }`}
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{otherName}</p>
-                    {conv.last_message_content && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-0.5">{conv.last_message_content}</p>
+                  <div className="min-w-0 flex items-center gap-2">
+                    {unread && (
+                      <span className="flex-shrink-0 w-2 h-2 rounded-full bg-maroon" />
                     )}
+                    <p className={`text-sm truncate ${unread ? 'font-bold text-gray-900 dark:text-gray-100' : 'font-semibold text-gray-900 dark:text-gray-100'}`}>
+                      {otherName}
+                    </p>
                   </div>
                   {conv.last_message_at && (
                     <span className="text-xs text-shadow-gray dark:text-gray-400 whitespace-nowrap">{timeAgo(conv.last_message_at)}</span>
                   )}
                 </div>
+                {conv.last_message_content && (
+                  <p className={`text-sm truncate mb-3 ${unread ? 'text-gray-800 dark:text-gray-200 font-medium' : 'text-gray-600 dark:text-gray-400'}`}>
+                    {conv.last_message_sender_id === user.id ? 'You: ' : ''}{conv.last_message_content}
+                  </p>
+                )}
                 {listing?.title && (
                   <div className="flex items-center gap-3 border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-50 dark:bg-gray-800">
                     <div className="w-10 h-10 rounded-md bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">

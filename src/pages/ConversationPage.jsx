@@ -108,6 +108,11 @@ export default function ConversationPage() {
           setMessages(prev =>
             prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]
           )
+          // Mark as read when we receive a message while the conversation is open
+          setConversation(c => {
+            if (c) markRead(c, user.id)
+            return c
+          })
         }
       )
       .subscribe()
@@ -145,6 +150,9 @@ export default function ConversationPage() {
       .single()
 
     setConversation({ ...conv, otherName: otherProfile?.display_name || otherProfile?.full_name || 'Unknown' })
+
+    // Mark as read
+    await markRead(conv, user.id)
 
     // If buyer, check if they already reviewed this listing
     const listing = conv.listings
@@ -247,6 +255,11 @@ export default function ConversationPage() {
 
     setConfirmModalOpen(false)
     setProcessingAction(false)
+  }
+
+  async function markRead(conv, userId) {
+    const col = conv.buyer_id === userId ? 'buyer_last_read_at' : 'seller_last_read_at'
+    await supabase.from('conversations').update({ [col]: new Date().toISOString() }).eq('id', conv.id)
   }
 
   async function handleSubmitReport(e) {
