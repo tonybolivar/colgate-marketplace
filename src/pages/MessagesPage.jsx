@@ -42,23 +42,26 @@ export default function MessagesPage() {
   }, [user])
 
   // Realtime: reorder conversations when a new message arrives
+  // Subscribes to message INSERTs (already enabled) rather than conversation UPDATEs
   useEffect(() => {
     if (!user) return
     const channel = supabase
-      .channel('messages-inbox')
+      .channel('messages-inbox-rt')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'conversations' },
+        { event: 'INSERT', schema: 'public', table: 'messages' },
         payload => {
-          const updated = payload.new
+          const msg = payload.new
           setConversations(prev => {
-            const exists = prev.find(c => c.id === updated.id)
-            if (!exists) return prev
-            // Merge updated fields, keep enriched profile data
-            const merged = { ...exists, ...updated }
-            // Move to top, re-sort
-            const others = prev.filter(c => c.id !== updated.id)
-            return [merged, ...others]
+            const conv = prev.find(c => c.id === msg.conversation_id)
+            if (!conv) return prev
+            const updated = {
+              ...conv,
+              last_message_at: msg.created_at,
+              last_message_content: msg.content,
+              last_message_sender_id: msg.sender_id,
+            }
+            return [updated, ...prev.filter(c => c.id !== msg.conversation_id)]
           })
         }
       )
