@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 
+const POLL_INTERVAL = 15000
+
 export function useUnreadCount() {
   const { user } = useAuth()
   const location = useLocation()
@@ -18,18 +20,27 @@ export function useUnreadCount() {
     setUnreadCount(data.filter(c => isUnread(c, user.id)).length)
   }, [user])
 
-  // Stable subscription — lives for the entire user session, NOT torn down on navigation
   useEffect(() => {
-    if (!user) return
+    if (!user) { setUnreadCount(0); return }
+
     compute()
+
+    // Poll every 15s — reliable across all pages regardless of realtime config
+    const interval = setInterval(compute, POLL_INTERVAL)
+
+    // Realtime as enhancement for instant updates when it fires
     const channel = supabase
-      .channel(`unread-msgs-${user.id}`)
+      .channel(`unread-${user.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, compute)
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [user, compute]) // compute only changes on login/logout
 
-  // Re-query on navigation (clears badge after user opens a conversation)
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
+  }, [user, compute])
+
+  // Also re-query on navigation (clears badge after opening a conversation)
   useEffect(() => {
     compute()
   }, [location.pathname, compute])
