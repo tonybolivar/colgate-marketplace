@@ -1,84 +1,110 @@
 # Colgate Marketplace
 
-A peer-to-peer marketplace for Colgate University students to buy, sell, and trade textbooks, furniture, electronics, clothing, services, and more — all within the Colgate community.
+A closed, identity-verified marketplace built exclusively for Colgate University students.
 
-Developed by **Tony Bolivar** as a TIA Venture (2026).
+Designed and implemented end-to-end by Tony Bolivar as a full-stack system focused on authentication, authorization, real-time communication, and transactional integrity.
 
 ---
 
-## Features
+## Overview
 
-- Colgate email-only registration (verified accounts)
-- Browse and search listings by category
-- Create, edit, and manage listings with photo uploads
-- In-app messaging between buyers and sellers
-- In-chat sale confirmation flow with buyer/seller handshake
-- Seller reviews and star ratings
-- Admin moderation panel (listing approvals, user management)
-- Email notifications via Resend
-- Light and dark mode
+Colgate Marketplace is a production-grade web application that enables students to buy and sell goods within a trusted campus network.
+
+The system enforces domain-restricted authentication, row-level security policies, and structured transaction state management to ensure secure peer-to-peer exchanges.
+
+Core problem addressed:
+Campus buying/selling is typically fragmented across informal channels (GroupMe, text threads, spreadsheets). This project centralizes listings, messaging, and transaction confirmation into a secure, permissioned platform.
+
+---
+
+## System Design & Architecture
+
+### Identity & Access Control
+
+- Domain-restricted authentication (Colgate email only)
+- PostgreSQL Row Level Security (RLS) policies for fine-grained authorization
+- Ownership-based access control for listings and conversations
+- Admin privilege separation for moderation actions
+
+### Data Modeling
+
+- Normalized relational schema
+- Explicit foreign key constraints
+- Transaction state machine (listed → pending → completed → archived)
+- Review system tied to completed transactions only
+
+### Realtime Communication
+
+- Real-time messaging using Postgres change subscriptions
+- Conversation-level isolation
+- Optimistic UI updates with server validation
+
+### Transaction Integrity
+
+- Two-sided confirmation handshake before marking a sale complete
+- Review eligibility gated by transaction completion state
+- Defensive checks against duplicate or invalid state transitions
+
+### Storage & Security
+
+- Authenticated file uploads with scoped access policies
+- Listing image isolation by owner
+- Server-side validation for all write operations
+
+---
+
+## Key Features
+
+- Email-restricted authentication
+- Category-based search and filtering
+- Listing CRUD with image uploads
+- Real-time buyer/seller messaging
+- Two-sided sale confirmation flow
+- Reputation system (ratings + reviews)
+- Admin moderation dashboard
+- Transactional email notifications
+- Light/Dark mode
+
+---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18 + Vite |
-| Styling | Tailwind CSS v3 + shadcn/ui |
-| Backend & Auth | Supabase (PostgreSQL + Row Level Security) |
-| File Storage | Supabase Storage |
-| Realtime | Supabase Realtime (postgres_changes) |
-| Email | Resend + Supabase Edge Functions |
-| Deployment | Vercel |
+**Frontend**
+- React 18
+- Vite
+- Tailwind CSS
+- shadcn/ui
 
-## Getting Started
+**Backend**
+- Supabase (PostgreSQL, Auth, RLS)
+- Supabase Storage
+- Postgres Realtime Subscriptions
 
-### Prerequisites
-
-- Node.js 18+
-- A Supabase project
-- A Resend account (for email notifications)
-
-### Setup
-
-```bash
-git clone https://github.com/tonybolivar/colgate-marketplace.git
-cd colgate-marketplace
-npm install
-```
-
-Copy the environment template and fill in your Supabase credentials:
-
-```bash
-cp .env.example .env.local
-```
-
-```
-VITE_SUPABASE_URL=       # Supabase project URL
-VITE_SUPABASE_ANON_KEY=  # Supabase anon/public key
-```
-
-Start the dev server:
-
-```bash
-npm run dev
-```
-
-### Database
-
-Run the SQL migrations in `supabase/migrations/` in order against your Supabase project via the SQL Editor.
-
-### Email Notifications
-
-Deploy the `supabase/functions/send-notification` edge function and set the `RESEND_API_KEY` secret in your Supabase project. Enable the `pg_net` extension under Database → Extensions.
-
-## Scripts
-
-```bash
-npm run dev      # Start dev server at http://localhost:5173
-npm run build    # Production build
-npm run preview  # Preview production build locally
-```
+**Email**
+- Resend
 
 ---
 
-© 2026 Tony Bolivar · Built as a TIA Venture · Not affiliated with Colgate University
+## Engineering Focus
+
+This project emphasizes:
+
+- Secure multi-tenant system design
+- Authorization through database-enforced policies (not just frontend checks)
+- Event-driven real-time updates
+- Transaction state management
+- Building production-style admin tooling
+- Designing for trust in a closed ecosystem
+
+---
+
+## Impact
+
+- Provides a centralized marketplace for ~3,000 students
+- Enforces identity verification to increase trust
+- Demonstrates full ownership of system architecture, database design, and frontend implementation
+
+---
+
+© 2026 Tony Bolivar  
+Independent student project · Not affiliated with Colgate University
